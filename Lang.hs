@@ -3,7 +3,7 @@
 -- Cole Swanson
 -- Melanie Gutzmann
 
-module QueueLang where
+module StackLang where
 
 data Value = I Int | B Bool | T Value Value
    deriving(Eq, Show)
@@ -17,27 +17,27 @@ data Stmt = While Expr Cmd | Begin [Cmd]
 data Cmd = Push Value | E Expr | S Stmt
    deriving(Eq, Show)
 
-type Queue = [Value]
+type Stack = [Value]
 
 type Prog = [Cmd]
 
-type Domain = Queue -> Maybe Queue
+type Domain = Stack -> Maybe Stack
 
 cmd :: Cmd -> Domain
-cmd (Push v) q =Just (q ++ [v])
+cmd (Push v) q =Just ([v] ++ q)
 cmd (E e) q = expr e q
 cmd (S s) q = stmt s q
 
 expr :: Expr -> Domain
 expr Add q = case q of 
-                ((I i) : (I j) : qs) -> Just ( qs ++ [I (i+j)] )
+                ((I i) : (I j) : qs) -> Just ( [I (i+j)] ++ qs )
                 _                    -> Nothing
 expr Mul q = case q of
-              ((I i) : (I j) : qs) -> Just (qs ++ [I (i*j)])
+              ((I i) : (I j) : qs) -> Just ( [I (i*j)] ++ qs)
               _                    -> Nothing  
 expr Equ q = case q of 
-               ((I i) : (I j) : qs) -> Just (qs ++ [B (i == j)])
-               ((B a) : (B b) : qs)  -> Just (qs ++ [B (a == b)])
+               ((I i) : (I j) : qs) -> Just ( [B (i == j)] ++ qs )
+               ((B a) : (B b) : qs)  -> Just ( [B (a == b)] ++ qs )
                _                    -> Nothing 
 expr (If t f) q = case q of
                   (B True : qs)  -> prog t qs
