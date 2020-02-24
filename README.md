@@ -18,7 +18,6 @@ _MathLang_ is intended to be run from GHCi, so the _Lang_ module must be loaded 
 ### Good Program Examples and their Outputs
 #### Example 1
 ```haskell
-<<<<<<< HEAD
 cmd Push (I 4) []
 >>> Expected Output: Just [I 4]
 ```
@@ -72,8 +71,3 @@ cmd S (While Equ S (Begin [Push (I 3), Push (I 2), Mul])) [B True, B True]
 prog [Push (I 2), Push (I 3), Add] []
 >>> Expected Output: Just [5]
 ```
-=======
-prog [Push (I 2), Push (I 3), Add] []
->>> Expected Output: Just [5]
-```
->>>>>>> Revise example in README
