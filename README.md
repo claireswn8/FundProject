@@ -16,7 +16,8 @@ Our language, named _QueueLang_, is a stack-based language that implements the f
 _QueueLang_ is intended to be run from GHCi, so the _Lang_ module must be loaded to run programs in the language.
 
 ### Good Program Examples and their Outputs
+#### Example 1
 ```haskell
-prog [Push (I 2), Push (I 3), Add]
+prog [Push (I 2), Push (I 3), Add] []
+>>> Expected Output: Just [5]
 ```
-Expected Output: 5
