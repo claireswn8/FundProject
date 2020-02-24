@@ -23,7 +23,6 @@ type Prog = [Cmd]
 
 type Domain = Queue -> Maybe Queue
 
-
 cmd :: Cmd -> Domain
 cmd (Push v) q =Just (q ++ [v])
 cmd (E e) q = expr e q
