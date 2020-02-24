@@ -16,6 +16,7 @@ Our language, named _ABetterStackLang_, is a stack-based language with a stack t
 _ABetterStackLang_ is intended to be run from GHCi, so the _Lang_ module must be loaded to run programs in the language.
 
 ### Good Program Examples and their Outputs
+#### Example 1
 ```haskell
 cmd Push (I 4) []
 >>> Expected Output: Just [I 4]
