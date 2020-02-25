@@ -33,18 +33,33 @@ type Prog = [Cmd]
 type Domain = Stack -> Maybe Stack
 
 cmd :: Cmd -> Domain
-cmd (Push v) q = Just ([v] ++ q)
+cmd (Push v) q = Just (v : q)
 cmd (E e)    q = expr e q
 cmd (S s)    q = stmt s q
 
-tupleEqu :: (Value, Value) -> Bool
-tupleEqu (T a b, T c d) = case (a, b, c, d) of
+safeDiv :: Int -> Int -> Maybe Int
+safeDiv _ 0 = Nothing
+safeDiv x y = Just (x `div` y)
+
+tupleDiv :: Value -> Value -> Maybe Value
+tupleDiv (T a b) (T c d) = case (a, b, c, d) of
+                              (_, I 0, _, I 0)     -> Nothing
+                              (I a, I b, I c, I d) -> case (safeDiv a c, safeDiv b d) of
+                                                         (Nothing, _)     -> Nothing
+                                                         (_, Nothing)     -> Nothing
+                                                         (Just x, Just y) -> Just (T (I x) (I y))
+                              _                    -> Nothing
+tupleDiv _        _      = Nothing
+
+tupleEqu :: Value -> Value -> Bool
+tupleEqu (T a b) (T c d) = case (a, b, c, d) of
                               (I a, I b, I c, I d) -> a == c && b == d
                               (B a, B b, B c, B d) -> a == c && b == d
                               (I a, B b, I c, B d) -> a == c && b == d
                               (B a, I b, B c, I d) -> a == c && b == d
                               _                    -> False
-tupleEqu _              = False
+tupleEqu _       _       = False
+
 
 expr :: Expr -> Domain
 expr Add q = case q of 
@@ -58,11 +73,18 @@ expr Mul q = case q of
                 (T v w : T y z : qs) -> case (v, w, y, z) of
                                           (I v, I w, I y, I z) -> Just (T (I (v * y)) (I (w * z)) : qs)
                                           _                    -> Nothing
-                _                    -> Nothing  
+                _                    -> Nothing
+expr Div q = case q of
+               (I i   : I j   : qs) -> case safeDiv i j of
+                                       (Just k) -> Just (I k : qs)
+                                       _        -> Nothing
+               (T v w : T y z : qs) -> case tupleDiv (T v w) (T y z) of
+                                          (Just (T a b)) -> Just (T a b : qs)
+                                          _              -> Nothing
 expr Equ q = case q of 
                (I i   : I j   : qs) -> Just (B (i == j) : qs)
                (B a   : B b   : qs) -> Just (B (a == b) : qs)
-               (T v w : T y z : qs) -> Just (B (tupleEqu (T v w, T y z)) : qs)
+               (T v w : T y z : qs) -> Just (B (tupleEqu (T v w) (T y z)) : qs)
 expr (If t f) q = case q of
                      (B True : qs)  -> prog t qs
                      (B False : qs) -> prog f qs
