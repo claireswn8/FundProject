@@ -45,3 +45,8 @@ cmd S (While Equ S (Begin [Push (I 3), Push (I 2), Mul])) [B True, B True]
 prog [Push (I 2), Push (I 3), Add] []
 >>> Expected Output: Just [5]
 ```
+
+```haskell
+prog [Push (I 1), Push (I 2), E Add, Push (B True), Push (B True), E Equ] []
+>>> Expected Output: Just [B True,I 3]
+```
