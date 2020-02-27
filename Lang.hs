@@ -69,6 +69,9 @@ expr Add q = case q of
                 ( F f : qs )         -> case (prog [f] qs) of 
                                         Just q  -> expr Add q
                                         Nothing -> Nothing  
+                (I i : F f : qs )    -> case (prog [f] qs) of 
+                                        Just q  -> expr Add ((I i) : q)
+                                        Nothing -> Nothing  
                 (T v w : T y z : qs) -> case (v, w, y, z) of
                                           (I v, I w, I y, I z) -> Just (T (I (v + y)) (I (w + z)) : qs)
                                           _                    -> Nothing
@@ -77,7 +80,10 @@ expr Mul q = case q of
                 (I i   : I j   : qs) -> Just (I (i * j) : qs)
                 ( F f : qs )         -> case (prog [f] qs) of 
                                         Just q  -> expr Mul q
-                                        Nothing -> Nothing  
+                                        Nothing -> Nothing 
+                (I i : F f : qs )    -> case (prog [f] qs) of 
+                                        Just q  -> expr Mul ((I i) : q)
+                                        Nothing -> Nothing   
                 (T v w : T y z : qs) -> case (v, w, y, z) of
                                           (I v, I w, I y, I z) -> Just (T (I (v * y)) (I (w * z)) : qs)
                                           _                    -> Nothing
@@ -89,6 +95,9 @@ expr Div q = case q of
                ( F f : qs )         -> case (prog [f] qs) of 
                                        Just q  -> expr Div q
                                        Nothing -> Nothing
+               (I i : F f : qs )    -> case (prog [f] qs) of 
+                                        Just q  -> expr Div ((I i) : q)
+                                        Nothing -> Nothing  
                (T v w : T y z : qs) -> case tupleDiv (T v w) (T y z) of
                                           (Just (T a b)) -> Just (T a b : qs)
                                           _              -> Nothing
@@ -98,6 +107,9 @@ expr Equ q = case q of
                ( F f : qs )         -> case (prog [f] qs) of 
                                        Just q  -> expr Equ q
                                        Nothing -> Nothing
+               (a : F f : qs )    -> case (prog [f] qs) of 
+                                        Just q  -> expr Equ (a : q)
+                                        Nothing -> Nothing  
                (T v w : T y z : qs) -> Just (B (tupleEqu (T v w) (T y z)) : qs)
 expr (If t f) q = case q of
                   (B True : qs)  -> prog t qs
@@ -118,6 +130,7 @@ stmt (Begin (c:cs)) q = case (cmd c q) of
                            (Just q) -> stmt (Begin cs) q
                            _        -> Nothing
 stmt (Begin []) q = Just q
+ 
 
 
 prog :: Prog -> Domain
