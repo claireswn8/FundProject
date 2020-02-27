@@ -69,8 +69,8 @@ expr Add q = case q of
                 ( F f : qs )         -> case (prog [f] qs) of 
                                         Just q  -> expr Add q
                                         Nothing -> Nothing  
-                (I i : F f : qs )    -> case (prog [f] qs) of 
-                                        Just q  -> expr Add ((I i) : q)
+                (a : F f : qs )    -> case (prog [f] qs) of 
+                                        Just q  -> expr Add (a : q)
                                         Nothing -> Nothing  
                 (T v w : T y z : qs) -> case (v, w, y, z) of
                                           (I v, I w, I y, I z) -> Just (T (I (v + y)) (I (w + z)) : qs)
@@ -81,8 +81,8 @@ expr Mul q = case q of
                 ( F f : qs )         -> case (prog [f] qs) of 
                                         Just q  -> expr Mul q
                                         Nothing -> Nothing 
-                (I i : F f : qs )    -> case (prog [f] qs) of 
-                                        Just q  -> expr Mul ((I i) : q)
+                (a : F f : qs )    -> case (prog [f] qs) of 
+                                        Just q  -> expr Mul (a : q)
                                         Nothing -> Nothing   
                 (T v w : T y z : qs) -> case (v, w, y, z) of
                                           (I v, I w, I y, I z) -> Just (T (I (v * y)) (I (w * z)) : qs)
@@ -95,8 +95,8 @@ expr Div q = case q of
                ( F f : qs )         -> case (prog [f] qs) of 
                                        Just q  -> expr Div q
                                        Nothing -> Nothing
-               (I i : F f : qs )    -> case (prog [f] qs) of 
-                                        Just q  -> expr Div ((I i) : q)
+               (a : F f : qs )    -> case (prog [f] qs) of 
+                                        Just q  -> expr Div (a : q)
                                         Nothing -> Nothing  
                (T v w : T y z : qs) -> case tupleDiv (T v w) (T y z) of
                                           (Just (T a b)) -> Just (T a b : qs)
