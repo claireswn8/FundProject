@@ -5,9 +5,11 @@
 
 module StackLang where
 
+
 data Value = I Int
            | B Bool
            | T Value Value
+           | F Cmd 
    deriving (Eq, Show)
 
 data Expr = Add
@@ -64,12 +66,24 @@ tupleEqu _       _       = False
 expr :: Expr -> Domain
 expr Add q = case q of 
                 (I i   : I j   : qs) -> Just (I (i + j) : qs)
+                ( F f : qs )         -> case (prog [f] qs) of 
+                                        Just q  -> expr Add q
+                                        Nothing -> Nothing  
+                (I i : F f : qs )    -> case (prog [f] qs) of 
+                                        Just q  -> expr Add ((I i) : q)
+                                        Nothing -> Nothing  
                 (T v w : T y z : qs) -> case (v, w, y, z) of
                                           (I v, I w, I y, I z) -> Just (T (I (v + y)) (I (w + z)) : qs)
                                           _                    -> Nothing
                 _                    -> Nothing
 expr Mul q = case q of
                 (I i   : I j   : qs) -> Just (I (i * j) : qs)
+                ( F f : qs )         -> case (prog [f] qs) of 
+                                        Just q  -> expr Mul q
+                                        Nothing -> Nothing 
+                (I i : F f : qs )    -> case (prog [f] qs) of 
+                                        Just q  -> expr Mul ((I i) : q)
+                                        Nothing -> Nothing   
                 (T v w : T y z : qs) -> case (v, w, y, z) of
                                           (I v, I w, I y, I z) -> Just (T (I (v * y)) (I (w * z)) : qs)
                                           _                    -> Nothing
@@ -78,30 +92,46 @@ expr Div q = case q of
                (I i   : I j   : qs) -> case safeDiv i j of
                                        (Just k) -> Just (I k : qs)
                                        _        -> Nothing
+               ( F f : qs )         -> case (prog [f] qs) of 
+                                       Just q  -> expr Div q
+                                       Nothing -> Nothing
+               (I i : F f : qs )    -> case (prog [f] qs) of 
+                                        Just q  -> expr Div ((I i) : q)
+                                        Nothing -> Nothing  
                (T v w : T y z : qs) -> case tupleDiv (T v w) (T y z) of
                                           (Just (T a b)) -> Just (T a b : qs)
                                           _              -> Nothing
 expr Equ q = case q of 
                (I i   : I j   : qs) -> Just (B (i == j) : qs)
                (B a   : B b   : qs) -> Just (B (a == b) : qs)
+               ( F f : qs )         -> case (prog [f] qs) of 
+                                       Just q  -> expr Equ q
+                                       Nothing -> Nothing
+               (a : F f : qs )    -> case (prog [f] qs) of 
+                                        Just q  -> expr Equ (a : q)
+                                        Nothing -> Nothing  
                (T v w : T y z : qs) -> Just (B (tupleEqu (T v w) (T y z)) : qs)
 expr (If t f) q = case q of
-                     (B True : qs)  -> prog t qs
-                     (B False : qs) -> prog f qs
-                     _              -> Nothing 
+                  (B True : qs)  -> prog t qs
+                  (B False : qs) -> prog f qs
+                  (F func : qs)  -> case (prog [func] qs) of
+                                    Just q  -> expr (If t f) q
+                                    Nothing -> Nothing
+                  _              -> Nothing 
 
 stmt :: Stmt -> Domain
-stmt (While e c)      q = case expr e q of 
-                              (Just ((B True) : qs)) -> case cmd c qs of
-                                                            (Just q) -> stmt (While e c) q
-                                                            _        -> Nothing
-                              (Just (_ : qs))         -> Just qs
-                              _                       -> Nothing
-stmt (Begin (c : cs)) q = case (c:cs) of
-                              [] -> Just q
-                              _  -> case cmd c q of
-                                       (Just q) -> stmt (Begin cs) q
-                                       _        -> Nothing
+stmt (While e c) q = case (expr e q) of 
+                     (Just ((B True):qs)) -> case (cmd c qs) of
+                                             (Just q) -> stmt (While e c) q
+                                             _        -> Nothing
+                     (Just (_:qs))        -> Just (qs)
+                     _                    -> Nothing
+stmt (Begin (c:cs)) q = case (cmd c q) of
+                           (Just q) -> stmt (Begin cs) q
+                           _        -> Nothing
+stmt (Begin []) q = Just q
+ 
+
 
 prog :: Prog -> Domain
 prog [] q      = Just q
