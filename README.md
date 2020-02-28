@@ -1,4 +1,4 @@
-# ABetterStackLang: Programming Language Fundamentals Project
+# MathLang: Programming Language Fundamentals Project
 A stack-based language that performs basic mathematic/logic operations.
 
 ## Team Members
@@ -9,11 +9,11 @@ Cole Swanson     | swanscol
 Hannah Vaughan   | vaughanh
 
 ## Language Introduction
-Our language, named _ABetterStackLang_, is a stack-based language with a stack that can have integers, booleans, and tuples as its values. These values can be pushed onto the stack, and mathematic operations can be performed on the integer values in the stack. Conditional logic allows for differing series of commands to be executed with if/else branching, while loops allow for looping to occur on values on the stack, and tuples can be both constructed and deconstructed to provide invertability.
+Our language, named _MathLang_, is a stack-based language with a stack that can have integers, booleans, and tuples as its values. These values can be pushed onto the stack, and mathematical operations can be performed on the integer values in the stack. Conditional logic allows for differing series of commands to be executed with if/else branching; while loops allow for looping to occur on values on the stack, and tuples can be both constructed and deconstructed to provide invertability.
 
 ## Usage
 ### Setup Instructions
-_ABetterStackLang_ is intended to be run from GHCi, so the _Lang_ module must be loaded to run programs in the language.
+_MathLang_ is intended to be run from GHCi, so the _Lang_ module must be loaded to run programs in the language.
 
 ### Good Program Examples and their Outputs
 ```haskell
@@ -44,9 +44,4 @@ cmd S (While Equ S (Begin [Push (I 3), Push (I 2), Mul])) [B True, B True]
 ```haskell
 prog [Push (I 2), Push (I 3), Add] []
 >>> Expected Output: Just [5]
-```
-
-```haskell
-prog [Push (I 1), Push (I 2), E Add, Push (B True), Push (B True), E Equ] []
->>> Expected Output: Just [B True,I 3]
 ```
