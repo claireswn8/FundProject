@@ -3,7 +3,6 @@
 -- Cole Swanson
 -- Melanie Gutzmann
 
-
 module StackLang where
 
 
@@ -38,8 +37,6 @@ type Prog = [Cmd]
 
 type FuncName = String
 
--- functions can take parameters simply by calling functions like 'pop' on the stack,
--- which will return the first value to the calling function
 type Func = (FuncName, [Cmd])
 
 type Domain = Stack -> [Func] -> Maybe Stack
