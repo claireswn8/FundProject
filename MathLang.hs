@@ -144,9 +144,10 @@ expr Less q fs = case q of
                      (T v w : T y z : qs) -> Just (B (tupleLess (T v w) (T y z)) : qs) 
                      _                    -> Nothing                
 expr (If t f) q fs = case q of
-                        (B True : qs)  -> prog t qs fs
+                        (B True  : qs) -> prog t qs fs
                         (B False : qs) -> prog f qs fs
-                        (F func : qs)  -> case (prog [func] qs fs) of
+                        (I n     : qs) -> if n > 0 then prog t qs fs else prog f qs fs
+                        (F func  : qs) -> case (prog [func] qs fs) of
                                              Just q  -> expr (If t f) q fs
                                              Nothing -> Nothing
                         _              -> Nothing 
