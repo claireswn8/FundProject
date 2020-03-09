@@ -200,4 +200,16 @@ andl :: Cmd
 andl = E (If [E (If [true] [false])] [E (If [false] [false])]) 
 
 orl :: Cmd
-orl = E (If [E (If [true] [true])] [E (If [true] [false])]) 
+orl = E (If [E (If [true] [true])] [E (If [true] [false])])
+
+-- Library-Level Functions --
+
+extractTuple :: Int -> Domain
+extractTuple _ []     _  = Just []
+extractTuple n (s:ss) fs = case s of
+                              T v w -> case n of
+                                          0 -> Just (v:ss)
+                                          1 -> Just (w:ss)
+                                          2 -> Just (v:w:ss)
+                                          _ -> Nothing
+                              _     -> Nothing
