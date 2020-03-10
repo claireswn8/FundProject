@@ -26,6 +26,7 @@ data Stmt = While Expr Cmd
 
 data Cmd = Push Value
          | Pop
+         | ExtractTuple Int
          | E Expr
          | S Stmt
          | Call FuncName
@@ -42,14 +43,22 @@ type Func = (FuncName, [Cmd])
 type Domain = Stack -> [Func] -> Maybe Stack
 
 cmd :: Cmd -> Domain
-cmd (Pop)     []     _ = Nothing
-cmd (Pop)     (q:qs) _ = Just qs
-cmd (Push v)  q      _ = Just (v : q)
-cmd (E e)     q     fs = expr e q fs
-cmd (S s)     q     fs = stmt s q fs
-cmd (Call fn) q     fs = case lookupFunc fn fs of 
-                              Just cmds -> prog cmds q fs
-                              _         -> Nothing
+cmd (Pop)            []     _  = Nothing
+cmd (Pop)            (q:qs) _  = Just qs
+cmd (Push v)         q      _  = Just (v : q)
+cmd (ExtractTuple _) []     _  = Just []
+cmd (ExtractTuple n) (q:qs) _  = case q of
+                                    T v w -> case n of
+                                                0 -> Just (v : qs)
+                                                1 -> Just (w : qs)
+                                                2 -> Just (v : w : qs)
+                                                _ -> Nothing
+                                    _     -> Nothing
+cmd (E e)            q      fs = expr e q fs
+cmd (S s)            q      fs = stmt s q fs
+cmd (Call fn)        q      fs = case lookupFunc fn fs of 
+                                    Just cmds -> prog cmds q fs
+                                    _         -> Nothing
 
 
 
@@ -201,15 +210,3 @@ andl = E (If [E (If [true] [false])] [E (If [false] [false])])
 
 orl :: Cmd
 orl = E (If [E (If [true] [true])] [E (If [true] [false])])
-
--- Library-Level Functions --
-
-extractTuple :: Int -> Domain
-extractTuple _ []     _  = Just []
-extractTuple n (s:ss) fs = case s of
-                              T v w -> case n of
-                                          0 -> Just (v:ss)
-                                          1 -> Just (w:ss)
-                                          2 -> Just (v:w:ss)
-                                          _ -> Nothing
-                              _     -> Nothing
