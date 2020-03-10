@@ -201,7 +201,6 @@ stmt (Begin (c:cs)) q fs = case (cmd c q fs) of
                            Just q -> stmt (Begin cs) q fs
                            _      -> Nothing
 stmt (Begin []) q _ = Just q
-
  
 -- Takes the name of a function and a list of functions, and returns the list of commands associated
 -- with the function, if it exists. If the function doesn't exist, it returns Nothing.
