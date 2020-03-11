@@ -5,6 +5,12 @@
 
 module MathLang where
 
+-- Our "Prelude", which contains library-level definitions
+mathlude :: [Func]
+mathlude = [("factorial", [S (Begin [Push (B False), Swap, E Dup, Push (I 2), 
+            S (While Less [E Dup, Push (I 1), minus, absval, E Dup, Push (I 2)]), 
+            S (While IsType [E Mul]), Swap, Pop ])])
+           ]
 
 data Value = I Int
            | B Bool
@@ -235,10 +241,10 @@ prog  (c:cs) q fs = case cmd c q fs of
                         Just q -> prog cs q fs
                         _      -> Nothing
 
--- Runs a Prog on an empty stack and with no other functions declared.
-run :: Prog -> Maybe Stack
-run [] = prog [] [] []
-run x  = prog x [] []
+-- Runs a Prog with the MathLude
+run :: Prog -> [Func] -> Maybe Stack
+run [] fs = prog [] [] (fs ++ mathlude)
+run x  fs = prog x [] (fs ++ mathlude)
 
 -- Syntactic Sugar --
 
@@ -272,19 +278,15 @@ minus = S (Begin [Push (I (-1)), E Mul, E Add])
 absval :: Cmd
 absval = S (Begin [E Dup, Push (I 0), E Less, E (If [] [Push (I (-1)), E Mul])])
 
--- Library-level or possibly syntactic sugar?
-
-factorial :: Cmd
-factorial = S (Begin [Push (B False), Swap, E Dup, Push (I 2), 
-            S (While Less [E Dup, Push (I 1), minus, absval, E Dup, Push (I 2)]), 
-            S (While IsType [E Mul]), Swap, Pop ])
-
 -- Good example 1: deconstruct an integer into its digits
--- run using 'run example1' or for custom arguments 'prog deconstructint [I 2837] []`
-example1 :: Prog
-example1 = [Push (I 235234)] ++ deconstructint
+-- run using 'run deconstructint_example deconstruct' or for custom arguments 'prog deconstructint [I 2837] deconstruct`
+deconstructint_example :: Prog
+deconstructint_example = [Push (I 235234)] ++ deconstructint
 
 deconstructint :: Prog
 deconstructint = [E Dup, Push (I 0), 
-                  S (While Less [E Dup, Push (I 10), E Mod, Swap, Push (I 10), Swap, E Div, E Dup, Push (I 0)]),
+                  S (While Less [Call "deconstruct"]),
                   Pop]
+
+deconstruct :: [Func]
+deconstruct = [("deconstruct", [E Dup, Push (I 10), E Mod, Swap, Push (I 10), Swap, E Div, E Dup, Push (I 0)])]
