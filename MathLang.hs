@@ -246,7 +246,7 @@ expr (If t f) q fs = case q of
                                              Nothing -> Nothing
                         _              -> Nothing 
 -- Duplicates the top value on the stack.
-expr (Dup) q fs = case q of 
+expr (Dup) q fs = case q of
                      []     -> Just []
                      (v:qs) -> Just (v : v : qs)
 -- Represents a list of expressions to evaluate against the stack, in order.
@@ -256,7 +256,7 @@ expr (ExprList el) q fs = case el of
                                              Just q2 -> expr (ExprList es) q2 fs
                                              _       -> Nothing
 -- Checks if the top two values on the stack are the same type. Does not consume the values.
-expr (IsType) q fs = case q of 
+expr (IsType) q fs = case q of
                         []             -> Nothing
                         [v1]           -> Nothing
                         (v1 : v2 : vs) -> case (v1, v2) of
