@@ -13,7 +13,7 @@ Our language, named _MathLang_, is a stack-based language with a stack that can 
 
 ## Usage
 ### Setup Instructions
-_MathLang_ is intended to be run from GHCi, so the _Lang_ module must be loaded to run programs in the language.
+_MathLang_ is intended to be run from GHCi, so the _MathLang_ module must be loaded to run programs in the language.
 
 ### Good Program Examples and their Outputs
 #### Example 1: Convert Integers to Digits
@@ -42,60 +42,20 @@ run [Push (I 6), Call "factorial"] []
 >>> Expected Output: Just [I 720]
 ```
 
-
-### Bad Program Examples and their Outputs
+##### Percentages
+To calculate 20% of 30:
 ```haskell
-expr Add [I 1,B True,I 2]
->>> Expected Output: Nothing
+prog (percent 20 30) [] []
+>>> Expected Output: Just [D 6.0]
 ```
 
+To calculate 75% of 245:
 ```haskell
-expr Mul [B False,I 1,I 2]
->>> Expected Output: Nothing
+prog (percent 75 245) [] []
+>>> Expected Output: Just [D 183.75]
 ```
 
-```haskell
-expr Div [I 5,I 0,I 1]
->>> Expected Output: Nothing
-```
-
-```haskell
-expr Div [I 5,B True,I 1]
->>> Expected Output: Nothing
-```
-
-```haskell
-expr Equ [B True,T (B False) (B True)]
->>> Expected Output: Nothing
-```
-
-```haskell
-expr (If [Push (I 5)] [Push (B False)]) [T (B True) (I 1)]
->>> Expected Output: Nothing
-```
-
-```haskell
-stmt (While Equ [Push (I 5),E Add]) [B True,I 4]
->>> Expected Output: Nothing
-```
-
-```haskell
-prog [E Add,E Equ] []
->>> Expected Output: Nothing
-```
-
-```haskell
-cmd (ExtractTuple 5) [T (I 3) (I 4)] []
->>> Expected Output: Nothing
-```
-
-```haskell
-cmd (ExtractTuple 1) [B True,T (B False) (I 4)] []
->>> Expected Output: Nothing
-```
-
-## Selected (Short) Good Example Commands
-
+### Selected (Short) Good Example Commands
 ```
 cmd (Push (I 4)) [] []
 >>> Expected Output: Just [I 4]
@@ -161,7 +121,6 @@ stmt (While Equ (S (Begin [Push (I 5),Push (I 2),E Add]))) [B True,B True] []
 >>> Expected Output: Just [I 7]
 ```
 
-#### ExtractTuple
 ```haskell
 cmd (ExtractTuple 0) [T (I 1) (I 2)] []
 >>> Expected Output: Just [I 1]
@@ -175,4 +134,55 @@ cmd (ExtractTuple 1) [T (I 1) (I 2)] []
 ```haskell
 cmd (ExtractTuple 2) [T (I 1) (I 2)] []
 >>> Expected Output: Just [I 1,I 2]
+```
+
+### Bad Program Examples and their Outputs
+```haskell
+expr Add [I 1,B True,I 2]
+>>> Expected Output: Nothing
+```
+
+```haskell
+expr Mul [B False,I 1,I 2]
+>>> Expected Output: Nothing
+```
+
+```haskell
+expr Div [I 5,I 0,I 1]
+>>> Expected Output: Nothing
+```
+
+```haskell
+expr Div [I 5,B True,I 1]
+>>> Expected Output: Nothing
+```
+
+```haskell
+expr Equ [B True,T (B False) (B True)]
+>>> Expected Output: Nothing
+```
+
+```haskell
+expr (If [Push (I 5)] [Push (B False)]) [T (B True) (I 1)]
+>>> Expected Output: Nothing
+```
+
+```haskell
+stmt (While Equ [Push (I 5),E Add]) [B True,I 4]
+>>> Expected Output: Nothing
+```
+
+```haskell
+prog [E Add,E Equ] []
+>>> Expected Output: Nothing
+```
+
+```haskell
+cmd (ExtractTuple 5) [T (I 3) (I 4)] []
+>>> Expected Output: Nothing
+```
+
+```haskell
+cmd (ExtractTuple 1) [B True,T (B False) (I 4)] []
+>>> Expected Output: Nothing
 ```
