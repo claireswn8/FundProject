@@ -250,9 +250,8 @@ absval = S (Begin [E Dup, Push (I 0), E Less, E (If [] [Push (I (-1)), E Mul])])
 
 -- Library-level or possibly syntactic sugar?
 
--- Factorial must be run by first providing a non-int value (any kind), and then the number itself. The non-int value will be consumed.
--- For example, [Push (Null), Push (I 3), factorial] returns [I 6]
 factorial :: Cmd
-factorial = S (Begin [E Dup, Push (I 2), S (While Less [E Dup, Push (I 1), minus, absval, E Dup, Push (I 2)]), 
+factorial = S (Begin [Push (B False), Swap, E Dup, Push (I 2), 
+            S (While Less [E Dup, Push (I 1), minus, absval, E Dup, Push (I 2)]), 
             S (While IsType [E Mul]), Swap, Pop ])
 
