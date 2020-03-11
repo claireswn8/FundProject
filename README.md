@@ -9,97 +9,39 @@ Cole Swanson     | swanscol
 Hannah Vaughan   | vaughanh
 
 ## Language Introduction
-Our language, named _MathLang_, is a stack-based language with a stack that can have integers, booleans, and tuples as its values. These values can be pushed onto the stack, and mathematical operations can be performed on the integer values in the stack. Conditional logic allows for differing series of commands to be executed with if/else branching; while loops allow for looping to occur on values on the stack, and tuples can be both constructed and deconstructed to provide invertability.
+Our language, named _MathLang_, is a stack-based language with a stack that can have integers, doubles, booleans, tuples, commands, and functions as its values. These values can be pushed onto the stack, and mathematical operations can be performed on the integer, boolean, and tuple values in the stack. Conditional logic allows for differing series of commands to be executed with if/else branching; while loops allow for looping to occur on values on the stack, and tuples can be both constructed and deconstructed to provide invertability. A "Mathlude" contains functions that perform less common mathematical operations, such as `factorial`, `percent`, and `summation`.
 
 ## Usage
 ### Setup Instructions
 _MathLang_ is intended to be run from GHCi, so the _Lang_ module must be loaded to run programs in the language.
 
 ### Good Program Examples and their Outputs
-This program deconstructs an integer into its digits which are then pushed back onto the stack.
+#### Example 1: Convert Integers to Digits
+This program deconstructs an integer into its digits. The digits are then pushed back onto the stack as individual integers.
 ```haskell
--- Prebuilt example: (runs against empty stack)
-run deconstructint_example
+-- Prebuilt example:
+run int2digit_example i2d_functions
 >>> Expected Output: Just [I 2,I 3,I 5,I 2,I 3,I 4]
 
--- Custom arguments:
-prog deconstructint [I 2837] []
+-- Custom argument:
+prog int2digit_example [I 2837] i2d_functions
 >>> Expected Output: Just [I 2,I 8,I 3,I 7]
 
 -- Full program:
-prog [E Dup, Push (I 0), S (While Less [E Dup, Push (I 10), E Mod, Swap, Push (I 10), Swap, E Div, E Dup, Push (I 0)]), Pop] [I 2837] []
+prog [Call "preprocessing", S (While Less [Call "deconstruct"]), Push (F "cleanup"), CallStackFunc] [I 2837] [  ("preprocessing", [E Dup, Push (I 0)]), ("deconstruct", [E Dup, Push (I 10), E Mod, Swap, Push (I 10), Swap, E Div, E Dup, Push (I 0)]), ("cleanup", [Pop])]
 >>> Expected Output: Just [I 2,I 8,I 3,I 7]
 ```
 
-```haskell
-cmd (Push (I 4)) [] []
->>> Expected Output: Just [I 4]
-```
+#### Example 2: TBA
+
+#### Further Examples
+Further examples of programs written in our language can be found in our "Mathlude". This standard library contains functions that allow users of our language to perform mathmatical calculations. Users can call functions such as `factorial`, `summation`, and `percent`. These functions are automatically included in the list of accessible functions when programs are run using the `run` keyword.
 
 ```haskell
-cmd (Push (B True)) [I 4] []
->>> Expected Output: Just [B True,I 4]
+run [Push (I 6), Call "factorial"] []
+>>> Expected Output: Just [I 720]
 ```
 
-```haskell
-cmd (Push (T (I 1) (B False))) [B True,I 4] []
->>> Expected Output: Just [T (I 1) (B False),B True,I 4]
-```
-
-```haskell
-expr Add [I 2,I 3,I 8] []
-cmd (E Add) [I 2,I 3,I 8] []
->>> Expected Output: Just [I 5,I 8]
-```
-
-```haskell
-expr Add [T (I 1) (I 2),T (I 2) (I 3),T (I 20) (I 40)] []
-cmd (E Add) [T (I 1) (I 2),T (I 2) (I 3),T (I 20) (I 40)] []
->>> Expected Output: Just [T (I 3) (I 5),T (I 20) (I 40)]
-```
-
-```haskell
-expr Mul [I 2,I 3,I 8] []
-cmd (E Mul) [I 2,I 3,I 8] []
->>> Expected Output: Just [I 6,I 8]
-```
-
-```haskell
-expr Mul [T (I 2) (I 3),T (I 4) (I 5),T (I 20) (I 40)] []
-cmd (E Mul) [T (I 2) (I 3),T (I 4) (I 5),T (I 20) (I 40)] []
->>> Expected Output: Just [T (I 8) (I 15),T (I 20) (I 40)]
-```
-
-```haskell
-expr Div [I 10,I 5,I 8] []
-cmd (E Div) [I 10,I 5,I 8] []
->>> Expected Output: Just [I 2,I 8]
-```
-
-```haskell
-expr Equ [I 2,I 2,I 3] []
->>> Expected Output: Just [B True,I 3]
-```
-
-```haskell
-expr Equ [B True,B False,I 3] []
->>> Expected Output: Just [B False,I 3]
-```
-
-```haskell
-expr (If [Push (I 5)] [Push (B True)]) [B True] []
->>> Expected Output: Just [I 5]
-```
-
-```haskell
-stmt (While Equ (S (Begin [Push (I 5),Push (I 2),E Add]))) [B True,B True] []
->>> Expected Output: Just [I 7]
-```
-
-```haskell
-prog [Push (I 5),Push (I 2),E Add] []
->>> Expected Output: Just [I 7]
-```
 
 #### ExtractTuple
 ```haskell

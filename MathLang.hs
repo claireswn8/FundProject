@@ -281,17 +281,17 @@ absval = S (Begin [E Dup, Push (I 0), E Less, E (If [] [Push (I (-1)), E Mul])])
 -- Good Examples --
 
 -- Example 1: Deconstruct an integer into its digits.
--- run using 'run deconstructint_example functions' or for custom arguments 'prog deconstructint [I 2837] functions`
-deconstructint_example :: Prog
-deconstructint_example = [Push (I 235234)] ++ deconstructint
+-- run using 'run int2digit_example i2d_functions' or for custom arguments 'prog int2digit_example [I 2837] i2d_functions`
+int2digit_example :: Prog
+int2digit_example = [Push (I 235234)] ++ int2digit
 
-deconstructint :: Prog
-deconstructint = [Call "preprocessing",
+int2digit :: Prog
+int2digit = [Call "preprocessing",
                   S (While Less [Call "deconstruct"]),
                   Push (F "cleanup"), CallStackFunc]
 
-functions :: [Func]
-functions = [  ("preprocessing", [E Dup, Push (I 0)]),
+i2d_functions :: [Func]
+i2d_functions = [  ("preprocessing", [E Dup, Push (I 0)]),
                ("deconstruct", [E Dup, Push (I 10), E Mod, Swap, Push (I 10), Swap, E Div, E Dup, Push (I 0)]),
                ("cleanup", [Pop])
             ]
