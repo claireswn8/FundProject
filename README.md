@@ -62,31 +62,31 @@ cmd (Push (I 4)) [] []
 ```
 
 ```haskell
-cmd (Push (B True)) [I 4] []
->>> Expected Output: Just [B True,I 4]
+cmd (Push (B True)) [D 4]
+>>> Expected Output: Just [B True,D 4.0]
 ```
 
 ```haskell
-cmd (Push (T (I 1) (B False))) [B True,I 4] []
->>> Expected Output: Just [T (I 1) (B False),B True,I 4]
+cmd (Push (T (D 1) (B False))) [B True,D 4]
+>>> Expected Output: Just [T (D 1.0) (B False),B True,D 4.0]
 ```
 
 ```haskell
-expr Add [I 2,I 3,I 8] []
-cmd (E Add) [I 2,I 3,I 8] []
->>> Expected Output: Just [I 5,I 8]
+expr Add [D 2,D 3,D 8]
+cmd (E Add) [D 2,D 3,D 8]
+>>> Expected Output: Just [D 5.0,D 8.0]
 ```
 
 ```haskell
-expr Add [T (I 1) (I 2),T (I 2) (I 3),T (I 20) (I 40)] []
-cmd (E Add) [T (I 1) (I 2),T (I 2) (I 3),T (I 20) (I 40)] []
->>> Expected Output: Just [T (I 3) (I 5),T (I 20) (I 40)]
+expr Add [T (D 1) (D 2),T (D 2) (D 3),T (D 20) (D 40)]
+cmd (E Add) [T (D 1) (D 2),T (D 2) (D 3),T (D 20) (D 40)]
+>>> Expected Output: Just [T (D 3.0) (D 5.0),T (D 20.0) (D 40.0)]
 ```
 
 ```haskell
-expr Mul [I 2,I 3,I 8] []
-cmd (E Mul) [I 2,I 3,I 8] []
->>> Expected Output: Just [I 6,I 8]
+expr Mul [D 2,D 3,D 8]
+cmd (E Mul) [D 2,D 3,D 8]
+>>> Expected Output: Just [D 6.0,D 8.0]
 ```
 
 ```haskell
@@ -122,6 +122,16 @@ stmt (While Equ (S (Begin [Push (I 5),Push (I 2),E Add]))) [B True,B True] []
 ```
 
 ```haskell
+<<<<<<< HEAD
+=======
+prog [Push (I 5),Push (I 2),E Add] []
+>>> Expected Output: Just [I 7]
+```
+
+<<<<<<< HEAD
+#### ExtractTuple
+```haskell
+>>>>>>> Update part of README
 cmd (ExtractTuple 0) [T (I 1) (I 2)] []
 >>> Expected Output: Just [I 1]
 ```
@@ -134,6 +144,19 @@ cmd (ExtractTuple 1) [T (I 1) (I 2)] []
 ```haskell
 cmd (ExtractTuple 2) [T (I 1) (I 2)] []
 >>> Expected Output: Just [I 1,I 2]
+=======
+#### Percentages
+To calculate 20% of 30:
+```haskell
+prog (percent 20 30) [] []
+>>> Expected Output: Just [D 6.0]
+```
+
+To calculate 75% of 245:
+```haskell
+prog (percent 75 245) [] []
+>>> Expected Output: Just [D 183.75]
+>>>>>>> Update part of README
 ```
 
 ### Bad Program Examples and their Outputs
