@@ -18,6 +18,13 @@ data Expr = Add
           | Equ
           | If Prog Prog
           | Less
+<<<<<<< HEAD
+=======
+          | Dup
+          | ExprList [Expr]
+          | IsType
+          | Mod
+>>>>>>> implemented mod
    deriving (Eq, Show)
 
 data Stmt = While Expr Cmd
@@ -176,6 +183,32 @@ expr (If t f) q fs = case q of
                                              Just q  -> expr (If t f) q fs
                                              Nothing -> Nothing
                         _              -> Nothing 
+-- Duplicates the top value on the stack.
+expr (Dup) q fs = case q of 
+                     []      -> Just []
+                     (v:qs)  -> Just (v : v : qs)
+-- Represents a list of expressions to evaluate against the stack, in order.
+expr (ExprList el) q fs = case el of 
+                              []       -> Just q
+                              (e : es) -> case expr e q fs of
+                                             Just q2 -> expr (ExprList es) q2 fs
+                                             _       -> Nothing
+-- Checks if the top two values on the stack are the same type. Does not consume the values.
+expr (IsType) q fs = case q of 
+                            []             -> Nothing
+                            [v1]           -> Nothing
+                            (v1 : v2 : vs) -> case (v1, v2) of
+                                                   (I i1, I i2)       -> Just (B True  : q)
+                                                   (B i1, B i2)       -> Just (B True  : q)
+                                                   (T i1 i2, T i3 i4) -> Just (B True  : q)
+                                                   (C i1, C i2)       -> Just (B True  : q)
+                                                   (F i1, F i2)       -> Just (B True  : q)
+                                                   _                  -> Just (B False : q)
+expr (Mod) q fs = case q of 
+                        (I i : [])       -> Just ([I (1 `mod` i)])
+                        (I i : I j : qs) -> Just (I (j `mod` i) : qs)
+                        _                -> Nothing
+
 
 stmt :: Stmt -> Domain
 stmt (While e c)    q fs = case (expr e q fs) of 
