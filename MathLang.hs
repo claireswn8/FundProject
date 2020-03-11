@@ -22,6 +22,7 @@ data Expr = Add
           | Dup
           | ExprList [Expr]
           | IsType
+          | Mod
    deriving (Eq, Show)
 
 data Stmt = While Expr Prog
@@ -188,7 +189,10 @@ expr (IsType) q fs = case q of
                                                    (C i1, C i2)       -> Just (B True  : q)
                                                    (F i1, F i2)       -> Just (B True  : q)
                                                    _                  -> Just (B False : q)
-
+expr (Mod) q fs = case q of 
+                        (I i : [])       -> Just ([I (1 `mod` i)])
+                        (I i : I j : qs) -> Just (I (j `mod` i) : qs)
+                        _                -> Nothing
 
 
 stmt :: Stmt -> Domain
