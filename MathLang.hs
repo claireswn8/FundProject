@@ -279,15 +279,20 @@ minus = S (Begin [Push (I (-1)), E Mul, E Add])
 absval :: Cmd
 absval = S (Begin [E Dup, Push (I 0), E Less, E (If [] [Push (I (-1)), E Mul])])
 
--- Good example 1: deconstruct an integer into its digits
--- run using 'run deconstructint_example deconstruct' or for custom arguments 'prog deconstructint [I 2837] deconstruct`
+-- Good Examples --
+
+-- Example 1: Deconstruct an integer into its digits.
+-- run using 'run deconstructint_example functions' or for custom arguments 'prog deconstructint [I 2837] functions`
 deconstructint_example :: Prog
 deconstructint_example = [Push (I 235234)] ++ deconstructint
 
 deconstructint :: Prog
-deconstructint = [E Dup, Push (I 0), 
+deconstructint = [Call "preprocessing",
                   S (While Less [Call "deconstruct"]),
-                  Pop]
+                  Push (F "cleanup"), CallStackFunc]
 
-deconstruct :: [Func]
-deconstruct = [("deconstruct", [E Dup, Push (I 10), E Mod, Swap, Push (I 10), Swap, E Div, E Dup, Push (I 0)])]
+functions :: [Func]
+functions = [  ("preprocessing", [E Dup, Push (I 0)]),
+               ("deconstruct", [E Dup, Push (I 10), E Mod, Swap, Push (I 10), Swap, E Div, E Dup, Push (I 0)]),
+               ("cleanup", [Pop])
+            ]
