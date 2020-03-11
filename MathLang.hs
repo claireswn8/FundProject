@@ -281,4 +281,8 @@ factorial = S (Begin [Push (B False), Swap, E Dup, Push (I 2),
 
 -- Good example 1: deconstruct an integer into its digits
 example1 :: Prog
-example1 = [Push (I 3)]
+example1 = [Push (I 123567),
+            E Dup, Push (I 0), 
+            --S (While Less [E Dup, Push (I 10), E Mod, Swap, E Dup, Push (I 10), Swap, E Div, Push (I 0), Push (I 0)])]
+            S ( While Less [E Dup, Push (I 10), E Mod, Swap, Push (I 10), Swap, E Div, E Dup, Push (I 0)]),
+            Pop]
