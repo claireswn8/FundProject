@@ -220,6 +220,11 @@ prog  (c:cs) q fs = case cmd c q fs of
                         Just q -> prog cs q fs
                         _      -> Nothing
 
+-- Runs a Prog on an empty stack and with no other functions declared.
+run :: Prog -> Maybe Stack
+run [] = prog [] [] []
+run x  = prog x [] []
+
 -- Syntactic Sugar --
 
 true :: Cmd
@@ -259,3 +264,6 @@ factorial = S (Begin [Push (B False), Swap, E Dup, Push (I 2),
             S (While Less [E Dup, Push (I 1), minus, absval, E Dup, Push (I 2)]), 
             S (While IsType [E Mul]), Swap, Pop ])
 
+-- Good example 1: deconstruct an integer into its digits
+example1 :: Prog
+example1 = [Push (I 3)]
