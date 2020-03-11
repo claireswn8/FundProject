@@ -16,6 +16,21 @@ Our language, named _MathLang_, is a stack-based language with a stack that can 
 _MathLang_ is intended to be run from GHCi, so the _Lang_ module must be loaded to run programs in the language.
 
 ### Good Program Examples and their Outputs
+This program deconstructs an integer into its digits which are then pushed back onto the stack.
+```haskell
+-- Prebuilt example: (runs against empty stack)
+run deconstructint_example
+>>> Expected Output: Just [I 2,I 3,I 5,I 2,I 3,I 4]
+
+-- Custom arguments:
+prog deconstructint [I 2837] []
+>>> Expected Output: Just [I 2,I 8,I 3,I 7]
+
+-- Full program:
+prog [E Dup, Push (I 0), S (While Less [E Dup, Push (I 10), E Mod, Swap, Push (I 10), Swap, E Div, E Dup, Push (I 0)]), Pop] [I 2837] []
+>>> Expected Output: Just [I 2,I 8,I 3,I 7]
+```
+
 ```haskell
 cmd (Push (I 4)) []
 >>> Expected Output: Just [I 4]
