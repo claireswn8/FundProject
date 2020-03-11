@@ -11,7 +11,6 @@ data Value = I Int
            | T Value Value
            | C Cmd 
            | F FuncName
-           | Null
    deriving (Eq, Show)
 
 data Expr = Add
