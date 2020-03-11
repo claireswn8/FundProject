@@ -307,3 +307,10 @@ i2d_functions = [  ("preprocessing", [E Dup, Push (I 0)]),
                ("deconstruct", [E Dup, Push (I 10), E Mod, Swap, Push (I 10), Swap, E Div, E Dup, Push (I 0)]),
                ("cleanup", [Pop])
             ]
+
+
+-- Library-Level Functions --
+
+-- | Returns x% of y
+percent :: Double -> Double -> Prog
+percent x y = [Push (D 100), Push (D x), E Div, Push (D y), E Mul]
