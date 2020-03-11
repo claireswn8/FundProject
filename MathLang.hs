@@ -202,3 +202,9 @@ andl = E (If [E (If [true] [false])] [E (If [false] [false])])
 
 orl :: Cmd
 orl = E (If [E (If [true] [true])] [E (If [true] [false])]) 
+
+-- Library-Level Functions --
+
+-- | Returns x% of y
+percent :: Double -> Double -> Prog
+percent x y = [Push (D 100), Push (D x), E Div, Push (D y), E Mul]
