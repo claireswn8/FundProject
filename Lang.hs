@@ -206,8 +206,4 @@ orl = E (If [E (If [true] [true])] [E (If [true] [false])])
 
 -- | Returns x% of y
 percent :: Double -> Double -> Prog
-<<<<<<< HEAD
 percent x y = [Push (D 100), Push (D x), E Div, Push (D y), E Mul]
-=======
-percent x y = [Push (D 100), Push (D x), E Div, Push (D y), E Mul]
->>>>>>> Merge branch 'percentages' of https://github.com/Coleswn8/FundProject into percentages
