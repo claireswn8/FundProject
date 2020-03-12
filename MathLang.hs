@@ -40,7 +40,6 @@ data Stmt = While Expr Prog
 
 data Cmd = Push Value
          | Pop
-         | ExtractTuple Int
          | E Expr
          | S Stmt
          | Call FuncName
@@ -160,11 +159,12 @@ expr Add q fs = case q of
                   (T v w : [])         -> case (v, w) of
                                          (I i, I j)           -> Just (([T (I i) (I j)]), fs)
                                          _                    -> Nothing
+                  (I i : I j : qs)     -> Just (I (i + j) : qs)
                   (C f : qs)           -> case (prog [f] qs fs) of 
-                                             Just (q, fs)  -> expr Add q fs
+                                             Just q  -> expr Add q fs
                                              Nothing -> Nothing  
                   (a : C f : qs)       -> case (prog [f] qs fs) of 
-                                             Just (q, fs)  -> expr Add (a : q) fs
+                                             Just q  -> expr Add (a : q) fs
                                              Nothing -> Nothing  
                   (T v w : T y z : qs) -> case (v, w, y, z) of
                                              (I v, I w, I y, I z) -> Just ((T (I (v + y)) (I (w + z)) : qs), fs)
