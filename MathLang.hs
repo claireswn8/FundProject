@@ -298,8 +298,7 @@ factorial = S (Begin [Push (B False), Swap, E Dup, Push (I 2),
 for :: Int -> [Cmd] -> Cmd
 for i c = S (Begin [Push (I i), Set, Push Counter, Push (I 0), S (While Less [Push Counter, dec, Set, S (Begin c), Push Counter, Push(I 0)])])
 
-
---summation :: Int -> [Cmd] -> Cmd
---summation i c= S(Begin [Push (I 0), Push (I 0), Push (I i),
---                While Less [E Dup, Push (I 0), E (If [E Equ] ]
---])
+summation :: Int -> Int -> [Cmd] -> Cmd
+summation l h c = S(Begin [Push (I l), Set, Push (I (h+1)), Push (I l), S (While Less 
+                   [Push Counter, S (Begin c), Push (I (h+1)), Push Counter, inc, Set, Push Counter]), 
+                   for (h-l) [E Add] ])
