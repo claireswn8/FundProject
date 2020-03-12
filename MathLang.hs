@@ -9,7 +9,8 @@ module MathLang where
 mathlude :: [Func]
 mathlude = [("factorial", [S (Begin [Push (B False), Swap, E Dup, Push (I 2), 
             S (While Less [E Dup, Push (I 1), minus, absval, E Dup, Push (I 2)]), 
-            S (While IsType [E Mul]), Swap, Pop ])])
+            S (While IsType [E Mul]), Swap, Pop ])]),
+            ("percent", [Push (D 100), Swap, E Div, E Mul])
            ]
 
 data Value = I Int
@@ -351,10 +352,3 @@ i2d_functions = [  ("preprocessing", [E Dup, Push (I 0)]),
                ("deconstruct", [E Dup, Push (I 10), E Mod, Swap, Push (I 10), Swap, E Div, E Dup, Push (I 0)]),
                ("cleanup", [Pop])
             ]
-
-
--- Library-Level Functions --
-
--- | Returns x% of y
-percent :: Double -> Double -> Prog
-percent x y = [Push (D 100), Push (D x), E Div, Push (D y), E Mul]
