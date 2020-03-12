@@ -31,6 +31,8 @@ data Expr = Add
           | ExprList [Expr]
           | IsType
           | Mod
+          | BuildTuple
+          | ExtractTuple Int
    deriving (Eq, Show)
 
 data Stmt = While Expr Prog
@@ -267,9 +269,23 @@ expr (IsType) q fs = case q of
                                              (F i1, F i2)       -> Just (B True  : q)
                                              _                  -> Just (B False : q)
 expr (Mod) q fs = case q of 
-                     (I i : [])       -> Just ([I (1 `mod` i)])
-                     (I i : I j : qs) -> Just (I (j `mod` i) : qs)
-                     _                -> Nothing
+                        (I i : [])       -> Just ([I (1 `mod` i)])
+                        (I i : I j : qs) -> Just (I (j `mod` i) : qs)
+                        _                -> Nothing
+-- Builds a tuple out of the top two elements of the stack, if they exist
+expr (BuildTuple) q fs = case q of
+                           []             -> Nothing
+                           [q1]           -> Nothing
+                           (q1 : q2 : qs) -> Just ((T q1 q2) : qs)
+-- Extracts the values from the tuple at the top of the stack
+expr (ExtractTuple _) []     _  = Just []
+expr (ExtractTuple n) (q:qs) _  = case q of
+                                    T v w -> case n of
+                                                0 -> Just (v : qs)
+                                                1 -> Just (w : qs)
+                                                2 -> Just (v : w : qs)
+                                                _ -> Nothing
+                                    _     -> Nothing
 
 
 stmt :: Stmt -> Domain
@@ -301,6 +317,7 @@ prog  (c:cs) q fs = case cmd c q fs of
 run :: Prog -> [Func] -> Maybe Stack
 run [] fs = prog [] [] (fs ++ mathlude)
 run x  fs = prog x [] (fs ++ mathlude)
+
 
 -- Syntactic Sugar --
 
@@ -334,6 +351,10 @@ minus = S (Begin [Push (I (-1)), E Mul, E Add])
 absval :: Cmd
 absval = S (Begin [E Dup, Push (I 0), E Less, E (If [] [Push (I (-1)), E Mul])])
 
+maxTuple :: Cmd
+maxTuple = S (Begin [E Dup, E (ExtractTuple 2), E greaterequ, E (If [E Dup, E (ExtractTuple 0)] [E Dup, E (ExtractTuple 1)]), Swap, Pop])
+
+
 -- Good Examples --
 
 -- Example 1: Deconstruct an integer into its digits.
@@ -351,3 +372,23 @@ i2d_functions = [  ("preprocessing", [E Dup, Push (I 0)]),
                ("deconstruct", [E Dup, Push (I 10), E Mod, Swap, Push (I 10), Swap, E Div, E Dup, Push (I 0)]),
                ("cleanup", [Pop])
             ]
+
+
+-- Example 2: Calculate the highest common factor of two numbers.
+-- run using 'run hcf_example example2_functions' or for custom arguments 'prog hcf [T (I 14) (I 36)] hcf_functions'
+
+hcf_example :: Prog
+hcf_example = [Push (T (I 12) (I 16))] ++ hcf
+
+hcf :: Prog
+hcf = [Call "preprocessing", S (While Less [Call "hcf"]), Call "cleanup"]
+
+hcf_functions :: [Func]
+hcf_functions = [("preprocessing", [Push (T (I 2) (I 1)), E BuildTuple, E Dup, E (ExtractTuple 2), E (ExtractTuple 0), Swap, maxTuple, Swap]),
+                  ("hcf", [Call "isFactor", E (If [Swap, E (If [Call "updateHcf"] [Call "updateCounter"])] [Call "updateCounter"])]),
+                  ("isFactor", [Call "firstFactor", Call "secondFactor"]),
+                  ("firstFactor", [E Dup, E (ExtractTuple 2), E (ExtractTuple 0), Swap, E (ExtractTuple 0), Swap, E Mod, Push (I 0), E Equ]),
+                  ("secondFactor", [Swap, E Dup, E (ExtractTuple 2), E (ExtractTuple 0), Swap, E (ExtractTuple 1), Swap, E Mod, Push (I 0), E Equ]),
+                  ("updateHcf", [E (ExtractTuple 2), E (ExtractTuple 0), E Dup, inc, E BuildTuple, E BuildTuple, E Dup, E (ExtractTuple 2), E (ExtractTuple 0), Swap, maxTuple, Swap]),
+                  ("updateCounter", [E (ExtractTuple 2), E (ExtractTuple 2), inc, E BuildTuple, E BuildTuple, E Dup, E (ExtractTuple 2), E (ExtractTuple 0), Swap, maxTuple, Swap]),
+                  ("cleanup", [E (ExtractTuple 0), E (ExtractTuple 1)])]
