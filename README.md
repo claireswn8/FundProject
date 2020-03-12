@@ -45,13 +45,13 @@ run [Push (I 6), Call "factorial"] []
 ##### Percentages
 To calculate 20% of 30:
 ```haskell
-prog (percent 20 30) [] []
+run [Push (D 20), Push (D 30), Call "percent"] []
 >>> Expected Output: Just [D 6.0]
 ```
 
 To calculate 75% of 245:
 ```haskell
-prog (percent 75 245) [] []
+run [Push (D 75), Push (D 245), Call "percent"] []
 >>> Expected Output: Just [D 183.75]
 ```
 
