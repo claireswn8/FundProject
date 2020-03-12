@@ -43,7 +43,58 @@ run [Push (I 6), Call "factorial"] []
 ```
 
 
+### Bad Program Examples and their Outputs
+```haskell
+expr Add [I 1,B True,I 2]
+>>> Expected Output: Nothing
+```
 
+```haskell
+expr Mul [B False,I 1,I 2]
+>>> Expected Output: Nothing
+```
+
+```haskell
+expr Div [I 5,I 0,I 1]
+>>> Expected Output: Nothing
+```
+
+```haskell
+expr Div [I 5,B True,I 1]
+>>> Expected Output: Nothing
+```
+
+```haskell
+expr Equ [B True,T (B False) (B True)]
+>>> Expected Output: Nothing
+```
+
+```haskell
+expr (If [Push (I 5)] [Push (B False)]) [T (B True) (I 1)]
+>>> Expected Output: Nothing
+```
+
+```haskell
+stmt (While Equ [Push (I 5),E Add]) [B True,I 4]
+>>> Expected Output: Nothing
+```
+
+```haskell
+prog [E Add,E Equ] []
+>>> Expected Output: Nothing
+```
+
+```haskell
+cmd (ExtractTuple 5) [T (I 3) (I 4)] []
+>>> Expected Output: Nothing
+```
+
+```haskell
+cmd (ExtractTuple 1) [B True,T (B False) (I 4)] []
+>>> Expected Output: Nothing
+```
+
+## Selected (Short) Good Example Commands
 
 ```
 cmd (Push (I 4)) [] []
@@ -110,7 +161,6 @@ stmt (While Equ (S (Begin [Push (I 5),Push (I 2),E Add]))) [B True,B True] []
 >>> Expected Output: Just [I 7]
 ```
 
-
 #### ExtractTuple
 ```haskell
 cmd (ExtractTuple 0) [T (I 1) (I 2)] []
@@ -125,56 +175,4 @@ cmd (ExtractTuple 1) [T (I 1) (I 2)] []
 ```haskell
 cmd (ExtractTuple 2) [T (I 1) (I 2)] []
 >>> Expected Output: Just [I 1,I 2]
-```
-
-### Bad Program Examples and their Outputs
-```haskell
-expr Add [I 1,B True,I 2]
->>> Expected Output: Nothing
-```
-
-```haskell
-expr Mul [B False,I 1,I 2]
->>> Expected Output: Nothing
-```
-
-```haskell
-expr Div [I 5,I 0,I 1]
->>> Expected Output: Nothing
-```
-
-```haskell
-expr Div [I 5,B True,I 1]
->>> Expected Output: Nothing
-```
-
-```haskell
-expr Equ [B True,T (B False) (B True)]
->>> Expected Output: Nothing
-```
-
-```haskell
-expr (If [Push (I 5)] [Push (B False)]) [T (B True) (I 1)]
->>> Expected Output: Nothing
-```
-
-```haskell
-stmt (While Equ [Push (I 5),E Add]) [B True,I 4]
->>> Expected Output: Nothing
-```
-
-```haskell
-prog [E Add,E Equ] []
->>> Expected Output: Nothing
-```
-
-#### ExtractTuple
-```haskell
-cmd (ExtractTuple 5) [T (I 3) (I 4)] []
->>> Expected Output: Nothing
-```
-
-```haskell
-cmd (ExtractTuple 1) [B True,T (B False) (I 4)] []
->>> Expected Output: Nothing
 ```
