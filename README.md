@@ -87,6 +87,7 @@ prog [Push (I 5),Push (I 2),E Add] []
 ```
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #### ExtractTuple
 ```haskell
 cmd (ExtractTuple 0) [T (I 1) (I 2)] []
@@ -102,6 +103,8 @@ cmd (ExtractTuple 1) [T (I 1) (I 2)] []
 cmd (ExtractTuple 2) [T (I 1) (I 2)] []
 >>> Expected Output: Just [I 1,I 2]
 =======
+=======
+>>>>>>> 675e155d8a79bd54e6e77d4f87cf7d7847159727
 #### Percentages
 To calculate 20% of 30:
 ```haskell
@@ -113,7 +116,10 @@ To calculate 75% of 245:
 ```haskell
 prog (percent 75 245) [] []
 >>> Expected Output: Just [D 183.75]
+<<<<<<< HEAD
 >>>>>>> Update part of README
+=======
+>>>>>>> 675e155d8a79bd54e6e77d4f87cf7d7847159727
 ```
 
 ### Bad Program Examples and their Outputs
