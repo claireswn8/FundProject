@@ -5,6 +5,12 @@
 
 module MathLang where
 
+-- Our "Prelude", which contains library-level definitions
+mathlude :: [Func]
+mathlude = [("factorial", [S (Begin [Push (B False), Swap, E Dup, Push (I 2), 
+            S (While Less [E Dup, Push (I 1), minus, absval, E Dup, Push (I 2)]), 
+            S (While IsType [E Mul]), Swap, Pop ])])
+           ]
 
 data Value = I Int
            | B Bool
@@ -23,6 +29,7 @@ data Expr = Add
           | Dup
           | ExprList [Expr]
           | IsType
+          | Mod
    deriving (Eq, Show)
 
 data Stmt = While Expr Prog
@@ -31,6 +38,7 @@ data Stmt = While Expr Prog
 
 data Cmd = Push Value
          | Pop
+         | ExtractTuple Int
          | E Expr
          | S Stmt
          | Call FuncName
@@ -56,12 +64,21 @@ cmd (Pop)     []     fs = Nothing
 cmd (Pop)     (q:qs) fs = Just (qs, fs)
 cmd (Push v)  q      fs = Just ((v : q), fs)
 cmd (E e)     q      fs = expr e q fs
+cmd (ExtractTuple _) []     fs  = Just ([], fs)
+cmd (ExtractTuple n) (q:qs) fs  = case q of
+                                    T v w -> case n of
+                                                0 -> Just ((v : qs), fs)
+                                                1 -> Just ((w : qs), fs)
+                                                2 -> Just ((v : w : qs), fs)
+                                                _ -> Nothing
+                                    _     -> Nothing
 cmd (S s)     q      fs = case stmt s q fs of
                               Just (q', fs') -> Just(q', fs)
                               _              -> Nothing
 cmd (Call fn) q      fs = case lookupFunc fn fs of 
                               Just cmds -> prog cmds q fs
                               _         -> Nothing
+
 -- Allows functions to be passed from the stack to other functions.
 cmd (CallStackFunc) (q:qs) fs = case q of 
                                     (F fn) -> case lookupFunc fn fs of
@@ -79,6 +96,8 @@ cmd Set             (q:qs) fs = case q of
                                                      _             -> Just (qs, (findSetC i fs))
                                     _             -> Nothing
 cmd Set              []    fs = Nothing
+
+
 
 
 safeDiv :: Int -> Int -> Maybe Int
@@ -116,6 +135,10 @@ expr Add q fs = case q of
                   (Counter : qs)       -> expr Add ((lookupC fs): qs) fs
                   (a : Counter : qs)   -> expr Add (a:(lookupC fs):qs) fs 
                   (I i : I j : qs)     -> Just ((I (i + j) : qs),fs)
+                  (I i : [])           -> Just ([I i], fs)
+                  (T v w : [])         -> case (v, w) of
+                                         (I i, I j)           -> Just (([T (I i) (I j)]), fs)
+                                         _                    -> Nothing
                   (C f : qs)           -> case (prog [f] qs fs) of 
                                              Just (q, fs)  -> expr Add q fs
                                              Nothing -> Nothing  
@@ -130,6 +153,9 @@ expr Mul q fs = case q of
                   (Counter : qs)       -> expr Mul ((lookupC fs): qs) fs
                   (a : Counter : qs)   -> expr Mul (a:(lookupC fs):qs) fs 
                   (I i : I j : qs)     -> Just ((I (i * j) : qs), fs)
+                  (I i : [])           -> Just ([I 0], fs)
+                  (T v w : [])         -> case (v, w) of
+                                         (I i, I j)            -> Just ([I 0], fs)
                   (C f : qs)           -> case (prog [f] qs fs) of 
                                              Just (q, fs)  -> expr Mul q fs
                                              Nothing -> Nothing 
@@ -161,6 +187,13 @@ expr Equ q fs = case q of
                   (a : Counter : qs)   -> expr Equ (a:(lookupC fs):qs) fs 
                   (I i : I j : qs)     -> Just ((B (i == j) : qs), fs)
                   (B a : B b : qs)     -> Just ((B (a == b) : qs), fs)
+                  (I i : [])           -> Just ([B (i == 0)], fs)
+                  (B b : [])           -> Just ([B (b == False)], fs) 
+                  (T a b : [])         -> case (a, b) of
+                                          (I a, I b) -> Just ([B (a == 0 && b == 0)], fs)
+                                          (B a, B b) -> Just ([B (a == False && b == False)], fs)
+                                          (I a, B b) -> Just ([B (a == 0 && b == False)], fs)
+                                          (B a, I b) -> Just ([B (a == False && b == 0)], fs)
                   (C f : qs)           -> case (prog [f] qs fs) of 
                                           Just (q, fs)  -> expr Equ q fs
                                           Nothing -> Nothing
@@ -173,6 +206,8 @@ expr Less q fs = case q of
                      (Counter : qs)       -> expr Less ((lookupC fs): qs) fs
                      (a : Counter : qs)   -> expr Less (a:(lookupC fs):qs) fs 
                      (I i : I j : qs)     -> Just ((B (i < j) : qs), fs)
+                     (I i : [])           -> Just ([B (i < 0)], fs)
+                     (T v w : [])         -> Just ([B (tupleLess (T v w) (T (I 0) (I 0)))], fs)
                      (C f : qs)           -> case (prog [f] qs fs) of 
                                              Just (q, fs)  -> expr Less q fs
                                              Nothing -> Nothing
@@ -210,6 +245,10 @@ expr (IsType) q fs = case q of
                                                    (C i1, C i2)       -> Just ((B True  : q), fs)
                                                    (F i1, F i2)       -> Just ((B True  : q), fs)
                                                    _                  -> Just ((B False : q), fs)
+expr (Mod) q fs = case q of 
+                        (I i : [])       -> Just ([I (1 `mod` i)], fs)
+                        (I i : I j : qs) -> Just (I ((j `mod` i) : qs), fs)
+                        _                -> Nothing
 
 
 
@@ -251,10 +290,13 @@ prog  (c:cs) q fs = case cmd c q fs of
                         _      -> Nothing
 
 run :: Prog -> [Ref] -> Maybe Stack
-run [] _ = Nothing
-run c fs = case prog c [] fs of
+run [] fs = case prog [] [] (fs ++ mathlude) of
          Just(q, fs)       -> Just q
          _                 -> Nothing
+run c fs = case prog c [] (fs++mathlude) of
+         Just(q, fs)       -> Just q
+         _                 -> Nothing
+
 
 -- Syntactic Sugar --
 
@@ -288,13 +330,6 @@ minus = S (Begin [Push (I (-1)), E Mul, E Add])
 absval :: Cmd
 absval = S (Begin [E Dup, Push (I 0), E Less, E (If [] [Push (I (-1)), E Mul])])
 
--- Library-level or possibly syntactic sugar?
-
-factorial :: Cmd
-factorial = S (Begin [Push (B False), Swap, E Dup, Push (I 2), 
-            S (While Less [E Dup, Push (I 1), minus, absval, E Dup, Push (I 2)]), 
-            S (While IsType [E Mul]), Swap, Pop ])
-
 for :: Int -> [Cmd] -> Cmd
 for i c = S (Begin [Push (I i), Set, Push Counter, Push (I 0), S (While Less [Push Counter, dec, Set, S (Begin c), Push Counter, Push(I 0)])])
 
@@ -302,3 +337,21 @@ summation :: Int -> Int -> [Cmd] -> Cmd
 summation l h c = S(Begin [Push (I l), Set, Push (I (h+1)), Push (I l), S (While Less 
                    [Push Counter, S (Begin c), Push (I (h+1)), Push Counter, inc, Set, Push Counter]), 
                    for (h-l) [E Add] ])
+
+-- Good Examples --
+
+-- Example 1: Deconstruct an integer into its digits.
+-- run using 'run int2digit_example i2d_functions' or for custom arguments 'prog int2digit_example [I 2837] i2d_functions`
+int2digit_example :: Prog
+int2digit_example = [Push (I 235234)] ++ int2digit
+
+int2digit :: Prog
+int2digit = [Call "preprocessing",
+                  S (While Less [Call "deconstruct"]),
+                  Push (F "cleanup"), CallStackFunc]
+
+i2d_functions :: [Func]
+i2d_functions = [  ("preprocessing", [E Dup, Push (I 0)]),
+               ("deconstruct", [E Dup, Push (I 10), E Mod, Swap, Push (I 10), Swap, E Div, E Dup, Push (I 0)]),
+               ("cleanup", [Pop])
+            ]
