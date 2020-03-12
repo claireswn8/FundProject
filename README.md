@@ -63,6 +63,12 @@ The following are bad examples:
 
 * `missingfunctiondefinition`
 
+* `emptystackpop`
+
+* `notenoughargumentsswap`
+
+* `notenoughargumentsistype`
+
 The expected output for all bad examples is `Nothing`
 
 ## Selected (Short) Good Example Commands

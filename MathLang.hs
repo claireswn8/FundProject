@@ -346,4 +346,24 @@ dividebyzero :: Prog
 dividebyzero = [Push (I 0), Push (I 10), E Div]
 -- Expected Output: Nothing
 
+-- This program is an example of an empty stack pop error in MathLang.
+-- Popping from the stack in MathLang expects a value on the stack. a program 
+-- attempting to pop an empty stack returns an error value of Nothing.  
+emptystackpop :: Prog
+emptystackpop = [Pop]
+-- Expected Output: Nothing
+
+-- This program is an example of a not enough arguments error in MathLang.
+-- The Swap and IsType operations on the stack that require two items on the stack will
+-- return an error value of Nothing if there are not enough items on the stack. 
+-- Note that this behavior only occurs for Swap and IsType, while expressions such as Add will 
+-- generate default arguments. 
+notenoughargumentsswap :: Prog
+notenoughargumentsswap = [Push (I 10), Swap]
+-- Expected Output: Nothing
+notenoughargumentsistype :: Prog
+notenoughargumentsistype = [Push (I 10), Swap]
+
+
+
 
