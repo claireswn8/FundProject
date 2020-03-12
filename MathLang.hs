@@ -5,6 +5,12 @@
 
 module MathLang where
 
+-- Our "Prelude", which contains library-level definitions
+mathlude :: [Func]
+mathlude = [("factorial", [S (Begin [Push (B False), Swap, E Dup, Push (I 2), 
+            S (While Less [E Dup, Push (I 1), minus, absval, E Dup, Push (I 2)]), 
+            S (While IsType [E Mul]), Swap, Pop ])])
+           ]
 
 data Value = I Int
            | B Bool
@@ -22,6 +28,7 @@ data Expr = Add
           | Dup
           | ExprList [Expr]
           | IsType
+          | Mod
    deriving (Eq, Show)
 
 data Stmt = While Expr Prog
@@ -215,7 +222,10 @@ expr (IsType) q fs = case q of
                                                    (C i1, C i2)       -> Just (B True  : q)
                                                    (F i1, F i2)       -> Just (B True  : q)
                                                    _                  -> Just (B False : q)
-
+expr (Mod) q fs = case q of 
+                        (I i : [])       -> Just ([I (1 `mod` i)])
+                        (I i : I j : qs) -> Just (I (j `mod` i) : qs)
+                        _                -> Nothing
 
 
 stmt :: Stmt -> Domain
@@ -242,6 +252,11 @@ prog  []     q _  = Just q
 prog  (c:cs) q fs = case cmd c q fs of
                         Just q -> prog cs q fs
                         _      -> Nothing
+
+-- Runs a Prog with the MathLude
+run :: Prog -> [Func] -> Maybe Stack
+run [] fs = prog [] [] (fs ++ mathlude)
+run x  fs = prog x [] (fs ++ mathlude)
 
 -- Syntactic Sugar --
 
@@ -275,10 +290,20 @@ minus = S (Begin [Push (I (-1)), E Mul, E Add])
 absval :: Cmd
 absval = S (Begin [E Dup, Push (I 0), E Less, E (If [] [Push (I (-1)), E Mul])])
 
--- Library-level or possibly syntactic sugar?
+-- Good Examples --
 
-factorial :: Cmd
-factorial = S (Begin [Push (B False), Swap, E Dup, Push (I 2), 
-            S (While Less [E Dup, Push (I 1), minus, absval, E Dup, Push (I 2)]), 
-            S (While IsType [E Mul]), Swap, Pop ])
+-- Example 1: Deconstruct an integer into its digits.
+-- run using 'run int2digit_example i2d_functions' or for custom arguments 'prog int2digit_example [I 2837] i2d_functions`
+int2digit_example :: Prog
+int2digit_example = [Push (I 235234)] ++ int2digit
 
+int2digit :: Prog
+int2digit = [Call "preprocessing",
+                  S (While Less [Call "deconstruct"]),
+                  Push (F "cleanup"), CallStackFunc]
+
+i2d_functions :: [Func]
+i2d_functions = [  ("preprocessing", [E Dup, Push (I 0)]),
+               ("deconstruct", [E Dup, Push (I 10), E Mod, Swap, Push (I 10), Swap, E Div, E Dup, Push (I 0)]),
+               ("cleanup", [Pop])
+            ]
