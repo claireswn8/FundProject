@@ -39,7 +39,6 @@ data Stmt = While Expr Prog
 
 data Cmd = Push Value
          | Pop
-         | ExtractTuple Int
          | E Expr
          | S Stmt
          | Call FuncName
