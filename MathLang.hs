@@ -6,8 +6,8 @@
 module MathLang where
 
 -- Our "Prelude", which contains library-level definitions
-mathlude :: [Func]
-mathlude = [("factorial", [S (Begin [Push (B False), Swap, E Dup, Push (I 2), 
+mathlude :: [Ref]
+mathlude = [RF ("factorial", [S (Begin [Push (B False), Swap, E Dup, Push (I 2), 
             S (While Less [E Dup, Push (I 1), minus, absval, E Dup, Push (I 2)]), 
             S (While IsType [E Mul]), Swap, Pop ])])
            ]
@@ -247,7 +247,7 @@ expr (IsType) q fs = case q of
                                                    _                  -> Just ((B False : q), fs)
 expr (Mod) q fs = case q of 
                         (I i : [])       -> Just ([I (1 `mod` i)], fs)
-                        (I i : I j : qs) -> Just (I ((j `mod` i) : qs), fs)
+                        (I i : I j : qs) -> Just ((I (j `mod` i) : qs), fs)
                         _                -> Nothing
 
 
