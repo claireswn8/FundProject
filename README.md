@@ -23,7 +23,7 @@ Prelude> :load MathLang
 #### Example 1: Convert Integer to Digits
 This program deconstructs an integer into its digits. The digits are then pushed back onto the stack as individual integers.
 ```haskell
--- Prebuilt example:
+-- Prebuilt example with input [I 235234]:
 run int2digit_example i2d_functions
 >>> Expected Output: Just [I 2,I 3,I 5,I 2,I 3,I 4]
 ```
@@ -31,7 +31,7 @@ run int2digit_example i2d_functions
 #### Example 2: Calculate Highest Common Factor
 This program calculates the highest common factor of two integers within a tuple. The remaining value on the stack will be the highest common factor of those two integers.
 ```haskell
--- Prebuilt example:
+-- Prebuilt example with input [T (I 12) (I 16)]:
 run hcf_example hcf_functions
 >>> Expected Output: Just [I 4]
 ```
