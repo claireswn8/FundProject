@@ -428,3 +428,64 @@ hcf_functions = [RF ("preprocessing", [Push (T (I 2) (I 1)), E BuildTuple, E Dup
                  RF ("updateHcf", [E (ExtractTuple 2), E (ExtractTuple 0), E Dup, inc, E BuildTuple, E BuildTuple, E Dup, E (ExtractTuple 2), E (ExtractTuple 0), Swap, maxTuple, Swap]),
                  RF ("updateCounter", [E (ExtractTuple 2), E (ExtractTuple 2), inc, E BuildTuple, E BuildTuple, E Dup, E (ExtractTuple 2), E (ExtractTuple 0), Swap, maxTuple, Swap]),
                  RF ("cleanup", [E (ExtractTuple 0), E (ExtractTuple 1)])]
+
+                 
+-- Bad Examples --
+
+-- This program is an example of a mismatched types error in MathLang.
+-- The I 10 and B False parameters on the stack cannot be added by the Add expression, 
+-- and the program returns an error value of Nothing. 
+mismatchtype :: Prog
+mismatchtype = [Push (I 10), Push(B False), E Add]
+-- Expected Output: Nothing
+
+-- This program is an example of a mismatched types error with tuples in MathLang.
+-- The I 10 and B False parameters on the stack cannot be added by the Add expression, 
+-- and the program returns an error value of Nothing. 
+tuplemismatchtype :: Prog
+tuplemismatchtype = [Push (T (I 10) (I 20)), Push (T (B True) (I 10)), E Add]
+-- Expected Output: Nothing
+
+-- This program is an example of an invalid argument to ExtractTuple error in MathLang.
+-- ExtractTuple can only accept integer values from 0 to 2, and values outside of this range will return an
+-- error value of Nothing. 
+invalidextracttuple :: Prog
+invalidextracttuple = [Push (T (I 10) (I 20)), ExtractTuple 5]
+-- Expected Output: Nothing
+
+-- This program is an example of a missing function definition error in MathLang.
+-- Named functions in MathLang must be defined before the program is run, and only defined functions can
+-- be called when running a program. The "badfunc" function was not defined on program start, and the program
+-- returns an error value of Nothing.   
+missingfunctiondefinition :: Prog
+missingfunctiondefinition = [Call "badfunc"]
+-- Expected Output: Nothing
+
+-- This program is an example of a divide by zero error in MathLang.
+-- Division in MathLang expects a non-zero divisor, and if a divisor is equal to zero the
+-- program will return an error value of Nothing. 
+dividebyzero :: Prog
+dividebyzero = [Push (I 0), Push (I 10), E Div]
+-- Expected Output: Nothing
+
+-- This program is an example of an empty stack pop error in MathLang.
+-- Popping from the stack in MathLang expects a value on the stack. a program 
+-- attempting to pop an empty stack returns an error value of Nothing.  
+emptystackpop :: Prog
+emptystackpop = [Pop]
+-- Expected Output: Nothing
+
+-- This program is an example of a not enough arguments error in MathLang.
+-- The Swap and IsType operations on the stack that require two items on the stack will
+-- return an error value of Nothing if there are not enough items on the stack. 
+-- Note that this behavior only occurs for Swap and IsType, while expressions such as Add will 
+-- generate default arguments. 
+notenoughargumentsswap :: Prog
+notenoughargumentsswap = [Push (I 10), Swap]
+-- Expected Output: Nothing
+notenoughargumentsistype :: Prog
+notenoughargumentsistype = [Push (I 10), E IsType]
+
+
+
+

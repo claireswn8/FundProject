@@ -41,30 +41,6 @@ prog [Call "preprocessing", S (While Less [Call "deconstruct"]), Push (F "cleanu
 #### Further Examples
 Further examples of programs written in our language can be found in our "Mathlude". This standard library contains functions that allow users of our language to perform mathmatical calculations. Users can call functions such as `factorial` and `percent`. These functions are automatically included in the list of accessible functions when programs are run using the `run` keyword.
 
-##### Factorials
-Factorial of 6:
-```haskell
-run [Push (I 6), Call "factorial"] []
->>> Expected Output: Just [I 720]
-```
-Factorial of 13:
-```haskell
-run [Push (I 13), Call "factorial"] []
->>> Expected Output: Just [I 6227020800]
-```
-##### Percentages
-To calculate 20% of 30:
-```haskell
-run [Push (D 20), Push (D 30), Call "percent"] []
->>> Expected Output: Just [D 6.0]
-```
-
-To calculate 75% of 245:
-```haskell
-run [Push (D 75), Push (D 245), Call "percent"] []
->>> Expected Output: Just [D 183.75]
-```
-
 ### Selected (Short) Good Example Commands
 ```
 cmd (Push (I 4)) [] []
@@ -135,66 +111,30 @@ cmd (ExtractTuple 2) [T (I 1) (I 2)] []
 >>> Expected Output: Just [I 1,I 2]
 ```
 
-#### Percentages
-To calculate 20% of 30:
-```haskell
-prog (percent 20 30) [] []
->>> Expected Output: Just [D 6.0]
-```
+### Running Bad Examples
+To run bad examples, use the following format in GHCi:
 
-To calculate 75% of 245:
-```haskell
-prog (percent 75 245) [] []
->>> Expected Output: Just [D 183.75]
-```
+`run [S (Begin ExampleName)] []`
 
-### Bad Program Examples and their Outputs
-```haskell
-expr Add [I 1,B True,I 2]
->>> Expected Output: Nothing
-```
+For example, to run the `dividebyzero` bad example, enter the following into GHCi:
 
-```haskell
-expr Mul [B False,I 1,I 2]
->>> Expected Output: Nothing
-```
+`run [S (Begin dividebyzero)] []`
 
-```haskell
-expr Div [I 5,I 0,I 1]
->>> Expected Output: Nothing
-```
+The following are bad examples:
+* `dividebyzero`
 
-```haskell
-expr Div [I 5,B True,I 1]
->>> Expected Output: Nothing
-```
+* `mismatchtype`
 
-```haskell
-expr Equ [B True,T (B False) (B True)]
->>> Expected Output: Nothing
-```
+* `tuplemismatchtype`
 
-```haskell
-expr (If [Push (I 5)] [Push (B False)]) [T (B True) (I 1)]
->>> Expected Output: Nothing
-```
+* `invalidextracttuple`
 
-```haskell
-stmt (While Equ [Push (I 5),E Add]) [B True,I 4]
->>> Expected Output: Nothing
-```
+* `missingfunctiondefinition`
 
-```haskell
-prog [E Add,E Equ] []
->>> Expected Output: Nothing
-```
+* `emptystackpop`
 
-```haskell
-cmd (ExtractTuple 5) [T (I 3) (I 4)] []
->>> Expected Output: Nothing
-```
+* `notenoughargumentsswap`
 
-```haskell
-cmd (ExtractTuple 1) [B True,T (B False) (I 4)] []
->>> Expected Output: Nothing
-```
+* `notenoughargumentsistype`
+
+The expected output for all bad examples is `Nothing`
