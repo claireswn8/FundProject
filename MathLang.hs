@@ -402,15 +402,13 @@ int2digit_example :: Prog
 int2digit_example = [Push (I 235234)] ++ int2digit
 
 int2digit :: Prog
-int2digit = [Call "preprocessing",
-                  S (While Less [Call "deconstruct"]),
-                  Push (F "cleanup"), CallStackFunc]
+int2digit = [Call "preprocessing", S (While Less [Call "deconstruct"]), Push (F "cleanup"), CallStackFunc]
 
-i2d_functions :: [Func]
-i2d_functions = [  ("preprocessing", [E Dup, Push (I 0)]),
-               ("deconstruct", [E Dup, Push (I 10), E Mod, Swap, Push (I 10), Swap, E Div, E Dup, Push (I 0)]),
-               ("cleanup", [Pop])
-            ]
+i2d_functions :: [Ref]
+i2d_functions = [RF ("preprocessing", [E Dup, Push (I 0)]),
+                 RF ("deconstruct", [E Dup, Push (I 10), E Mod, Swap, Push (I 10), Swap, E Div, E Dup, Push (I 0)]),
+                 RF ("cleanup", [Pop])
+                ]
 
 
 -- Example 2: Calculate the highest common factor of two numbers.
@@ -450,7 +448,7 @@ tuplemismatchtype = [Push (T (I 10) (I 20)), Push (T (B True) (I 10)), E Add]
 -- ExtractTuple can only accept integer values from 0 to 2, and values outside of this range will return an
 -- error value of Nothing. 
 invalidextracttuple :: Prog
-invalidextracttuple = [Push (T (I 10) (I 20)), ExtractTuple 5]
+invalidextracttuple = [Push (T (I 10) (I 20)), E (ExtractTuple 5)]
 -- Expected Output: Nothing
 
 -- This program is an example of a missing function definition error in MathLang.
