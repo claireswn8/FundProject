@@ -14,6 +14,10 @@ Our language, named _MathLang_, is a stack-based language with a stack that can 
 ## Usage
 ### Setup Instructions
 _MathLang_ is intended to be run from GHCi, so the _MathLang_ module must be loaded to run programs in the language.
+```bash
+$ ghci
+Prelude> :load MathLang
+```
 
 ### Good Program Examples and their Outputs
 #### Example 1: Convert Integers to Digits
