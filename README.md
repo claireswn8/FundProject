@@ -36,7 +36,12 @@ prog [Call "preprocessing", S (While Less [Call "deconstruct"]), Push (F "cleanu
 >>> Expected Output: Just [I 2,I 8,I 3,I 7]
 ```
 
-#### Example 2: TBA
+#### Example 2: Calculate Highest Common Factor
+This program calculates the highest common factor of two integers within a tuple. The remaining value on the stack will be the highest common factor of those two integers.
+```haskell
+run hcf_example hcf_functions
+>>> Expected Output: Just [I 4]
+```
 
 #### Further Examples
 Further examples of programs written in our language can be found in our "Mathlude". This standard library contains functions that allow users of our language to perform mathmatical calculations. Users can call functions such as `factorial` and `percent`. These functions are automatically included in the list of accessible functions when programs are run using the `run` keyword.
@@ -74,26 +79,6 @@ expr Mul [D 2,D 3,D 8]
 cmd (E Mul) [D 2,D 3,D 8]
 >>> Expected Output: Just [D 6.0,D 8.0]
 ```
-
--- Custom argument:
-prog int2digit_example [I 2837] i2d_functions
->>> Expected Output: Just [I 2,I 8,I 3,I 7]
-
--- Full program:
-prog [Call "preprocessing", S (While Less [Call "deconstruct"]), Push (F "cleanup"), CallStackFunc] [I 2837] [  ("preprocessing", [E Dup, Push (I 0)]), ("deconstruct", [E Dup, Push (I 10), E Mod, Swap, Push (I 10), Swap, E Div, E Dup, Push (I 0)]), ("cleanup", [Pop])]
->>> Expected Output: Just [I 2,I 8,I 3,I 7]
-```
-
-#### Example 2: TBA
-
-#### Further Examples
-Further examples of programs written in our language can be found in our "Mathlude". This standard library contains functions that allow users of our language to perform mathmatical calculations. Users can call functions such as `factorial`, `summation`, and `percent`. These functions are automatically included in the list of accessible functions when programs are run using the `run` keyword.
-
-```haskell
-run [Push (I 6), Call "factorial"] []
->>> Expected Output: Just [I 720]
-```
-
 
 #### ExtractTuple
 ```haskell
