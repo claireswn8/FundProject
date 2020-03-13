@@ -403,7 +403,7 @@ i2d_functions = [  ("preprocessing", [E Dup, Push (I 0)]),
                ("deconstruct", [E Dup, Push (I 10), E Mod, Swap, Push (I 10), Swap, E Div, E Dup, Push (I 0)]),
                ("cleanup", [Pop])
             ]
-            
+
 -- Bad Examples --
 
 -- This program is an example of a mismatched types error in MathLang.
@@ -458,7 +458,7 @@ notenoughargumentsswap :: Prog
 notenoughargumentsswap = [Push (I 10), Swap]
 -- Expected Output: Nothing
 notenoughargumentsistype :: Prog
-notenoughargumentsistype = [Push (I 10), Swap]
+notenoughargumentsistype = [Push (I 10), E IsType]
 
 
 

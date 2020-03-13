@@ -39,7 +39,7 @@ prog [Call "preprocessing", S (While Less [Call "deconstruct"]), Push (F "cleanu
 #### Example 2: TBA
 
 #### Further Examples
-Further examples of programs written in our language can be found in our "Mathlude". This standard library contains functions that allow users of our language to perform mathmatical calculations. Users can call functions such as `factorial`, `summation`, and `percent`. These functions are automatically included in the list of accessible functions when programs are run using the `run` keyword.
+Further examples of programs written in our language can be found in our "Mathlude". This standard library contains functions that allow users of our language to perform mathmatical calculations. Users can call functions such as `factorial` and `percent`. These functions are automatically included in the list of accessible functions when programs are run using the `run` keyword.
 
 ```haskell
 run [Push (I 6), Call "factorial"] []
@@ -146,7 +146,7 @@ cmd (ExtractTuple 2) [T (I 1) (I 2)] []
 ```
 
 ### Running Bad Examples
-To run back examples, use the following format in GHCi:
+To run bad examples, use the following format in GHCi:
 
 `run [S (Begin ExampleName)] []`
 
