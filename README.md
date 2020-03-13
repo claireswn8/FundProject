@@ -39,62 +39,16 @@ prog [Call "preprocessing", S (While Less [Call "deconstruct"]), Push (F "cleanu
 #### Example 2: Calculate Highest Common Factor
 This program calculates the highest common factor of two integers within a tuple. The remaining value on the stack will be the highest common factor of those two integers.
 ```haskell
+-- Prebuilt example:
 run hcf_example hcf_functions
 >>> Expected Output: Just [I 4]
+
+-- Full program:
+prog [Push (T (I 12) (I 16)), Call "preprocessing", S (While Less [Call "hcf"]), Call "cleanup"] [RF ("preprocessing", [Push (T (I 2) (I 1)), E BuildTuple, E Dup, E (ExtractTuple 2), E (ExtractTuple 0), Swap, maxTuple, Swap]), RF ("hcf", [Call "isFactor", E (If [Swap, E (If [Call "updateHcf"] [Call "updateCounter"])] [Swap, Pop, Call "updateCounter"])]), RF ("isFactor", [Call "firstFactor", Call "secondFactor"]), RF ("firstFactor", [E Dup, E (ExtractTuple 2), E (ExtractTuple 0), Swap, E (ExtractTuple 0), Swap, E Mod, Push (I 0), E Equ]), RF ("secondFactor", [Swap, E Dup, E (ExtractTuple 2), E (ExtractTuple 0), Swap, E (ExtractTuple 1), Swap, E Mod, Push (I 0), E Equ]), RF ("updateHcf", [E (ExtractTuple 2), E (ExtractTuple 0), E Dup, inc, E BuildTuple, E BuildTuple, E Dup, E (ExtractTuple 2), E (ExtractTuple 0), Swap, maxTuple, Swap]), RF ("updateCounter", [E (ExtractTuple 2), E (ExtractTuple 2), inc, E BuildTuple, E BuildTuple, E Dup, E (ExtractTuple 2), E (ExtractTuple 0), Swap, maxTuple, Swap]), RF ("cleanup", [E (ExtractTuple 0), E (ExtractTuple 1)])]
 ```
 
 #### Further Examples
 Further examples of programs written in our language can be found in our "Mathlude". This standard library contains functions that allow users of our language to perform mathmatical calculations. Users can call functions such as `factorial` and `percent`. These functions are automatically included in the list of accessible functions when programs are run using the `run` keyword.
-
-### Selected (Short) Good Example Commands
-```
-cmd (Push (I 4)) [] []
->>> Expected Output: Just [I 4]
-```
-
-```haskell
-cmd (Push (B True)) [D 4]
->>> Expected Output: Just [B True,D 4.0]
-```
-
-```haskell
-cmd (Push (T (D 1) (B False))) [B True,D 4]
->>> Expected Output: Just [T (D 1.0) (B False),B True,D 4.0]
-```
-
-```haskell
-expr Add [D 2,D 3,D 8]
-cmd (E Add) [D 2,D 3,D 8]
->>> Expected Output: Just [D 5.0,D 8.0]
-```
-
-```haskell
-expr Add [T (D 1) (D 2),T (D 2) (D 3),T (D 20) (D 40)]
-cmd (E Add) [T (D 1) (D 2),T (D 2) (D 3),T (D 20) (D 40)]
->>> Expected Output: Just [T (D 3.0) (D 5.0),T (D 20.0) (D 40.0)]
-```
-
-```haskell
-expr Mul [D 2,D 3,D 8]
-cmd (E Mul) [D 2,D 3,D 8]
->>> Expected Output: Just [D 6.0,D 8.0]
-```
-
-#### ExtractTuple
-```haskell
-cmd (ExtractTuple 0) [T (I 1) (I 2)] []
->>> Expected Output: Just [I 1]
-```
-
-```haskell
-cmd (ExtractTuple 1) [T (I 1) (I 2)] []
->>> Expected Output: Just [I 2]
-```
-
-```haskell
-cmd (ExtractTuple 2) [T (I 1) (I 2)] []
->>> Expected Output: Just [I 1,I 2]
-```
 
 ### Running Bad Examples
 To run bad examples, use the following format in GHCi:
