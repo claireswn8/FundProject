@@ -172,9 +172,7 @@ expr Mul q fs = case q of
                   (D i : D j : qs)     -> Just ((D (i * j) : qs), fs)
                   (I i : [])           -> Just ([I 0], fs)
                   (D i : [])           -> Just ([D i], fs)
-                  (T v w : [])         -> case (v, w) of
-                                             (I i, I j)            -> Just ([I 0], fs)
-
+                  (T v w : [])         -> Just ([T v w], fs)
                   (C f : qs)           -> case (prog [f] qs fs) of 
                                              Just (q, fs)  -> expr Mul q fs
                                              Nothing -> Nothing 
@@ -197,7 +195,6 @@ expr Div q fs = case q of
                                              Just k -> Just ((k : qs), fs)
                   (D i : D j : qs)     -> case safeDiv (D i) (D j) of
                                              Just k -> Just ((k : qs), fs)
-
                                              _        -> Nothing
                   (C f : qs)           -> case (prog [f] qs fs) of 
                                              Just (q, fs)  -> expr Div q fs
@@ -322,13 +319,13 @@ stmt (Begin [])     q fs  = Just (q, fs)
 lookupFunc :: FuncName -> [Ref] -> Maybe [Cmd]
 lookupFunc fn []             = Nothing
 lookupFunc fn (RF (n, cmds):fs) = if n == fn then Just cmds
-                               else lookupFunc fn fs
+                                  else lookupFunc fn fs
 
 findSetC :: Int -> [Ref] -> [Ref]
 findSetC i []       = [RC i]
 findSetC i (r:rs)   = case r of
-                     RC j  -> (RC i) : rs
-                     _     -> r : (findSetC i rs)
+                        RC j  -> (RC i) : rs
+                        _     -> r : (findSetC i rs)
 
 lookupC :: [Ref] -> Value
 lookupC []         = I 0
@@ -349,8 +346,6 @@ run [] fs = case prog [] [] (fs ++ mathlude) of
 run c fs = case prog c [] (fs++mathlude) of
                Just(q, fs)       -> Just q
                _                 -> Nothing
-
-
 
 
 -- Syntactic Sugar --
