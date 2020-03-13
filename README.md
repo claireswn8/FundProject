@@ -20,7 +20,7 @@ Prelude> :load MathLang
 ```
 
 ### Good Program Examples and their Outputs
-#### Example 1: Convert Integers to Digits
+#### Example 1: Convert Integer to Digits
 This program deconstructs an integer into its digits. The digits are then pushed back onto the stack as individual integers.
 ```haskell
 -- Prebuilt example:
@@ -39,13 +39,19 @@ prog [Call "preprocessing", S (While Less [Call "deconstruct"]), Push (F "cleanu
 #### Example 2: TBA
 
 #### Further Examples
-Further examples of programs written in our language can be found in our "Mathlude". This standard library contains functions that allow users of our language to perform mathmatical calculations. Users can call functions such as `factorial`, `summation`, and `percent`. These functions are automatically included in the list of accessible functions when programs are run using the `run` keyword.
+Further examples of programs written in our language can be found in our "Mathlude". This standard library contains functions that allow users of our language to perform mathmatical calculations. Users can call functions such as `factorial` and `percent`. These functions are automatically included in the list of accessible functions when programs are run using the `run` keyword.
 
+##### Factorials
+Factorial of 6:
 ```haskell
 run [Push (I 6), Call "factorial"] []
 >>> Expected Output: Just [I 720]
 ```
-
+Factorial of 13:
+```haskell
+run [Push (I 13), Call "factorial"] []
+>>> Expected Output: Just [I 6227020800]
+```
 ##### Percentages
 To calculate 20% of 30:
 ```haskell
