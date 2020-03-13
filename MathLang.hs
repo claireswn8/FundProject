@@ -170,7 +170,7 @@ expr Mul q fs = case q of
                   (a : Counter : qs)   -> expr Mul (a:(lookupC fs):qs) fs 
                   (I i : I j : qs)     -> Just ((I (i * j) : qs), fs)
                   (D i : D j : qs)     -> Just ((D (i * j) : qs), fs)
-                  (I i : [])           -> Just ([I 0], fs)
+                  (I i : [])           -> Just ([I i], fs)
                   (D i : [])           -> Just ([D i], fs)
                   (T v w : [])         -> Just ([T v w], fs)
                   (C f : qs)           -> case (prog [f] qs fs) of 
@@ -485,7 +485,6 @@ notenoughargumentsswap = [Push (I 10), Swap]
 -- Expected Output: Nothing
 notenoughargumentsistype :: Prog
 notenoughargumentsistype = [Push (I 10), E IsType]
-
 
 
 
