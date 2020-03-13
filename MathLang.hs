@@ -84,7 +84,7 @@ cmd (CallStackFunc) (q:qs) fs = case q of
 -- Swaps the position of the first two elements of the stack, if they exist
 cmd (Swap)           q     fs = case q of
                                     []             -> Nothing
-                                    [q1]           -> Nothing
+                                    [q1]           -> Just ([q1], fs)
                                     (q1 : q2 : qs) -> Just ((q2 : q1 : qs), fs)
 cmd Set             (q:qs) fs = case q of
                                     I i           -> case fs of
@@ -391,6 +391,8 @@ summation l h c = S(Begin [Push (I l), Set, Push (I (h+1)), Push (I l), S (While
 maxTuple :: Cmd
 maxTuple = S (Begin [E Dup, E (ExtractTuple 2), E greaterequ, E (If [E Dup, E (ExtractTuple 0)] [E Dup, E (ExtractTuple 1)]), Swap, Pop])
 
+isBoolean :: Cmd
+isBoolean = S (Begin [E Dup, true, E Equ, E (If [true] [E Dup, false, E Equ, E (If [true] [false])])])
 
 -- Good Examples --
 
@@ -412,14 +414,14 @@ i2d_functions = [  ("preprocessing", [E Dup, Push (I 0)]),
 
 
 -- Example 2: Calculate the highest common factor of two numbers.
--- run using 'run hcf_example example2_functions'
+-- run using 'run hcf_example hcf_functions'
 
 hcf_example :: Prog
 hcf_example = [Push (T (I 12) (I 16)), Call "preprocessing", S (While Less [Call "hcf"]), Call "cleanup"]
 
 hcf_functions :: [Ref]
 hcf_functions = [RF ("preprocessing", [Push (T (I 2) (I 1)), E BuildTuple, E Dup, E (ExtractTuple 2), E (ExtractTuple 0), Swap, maxTuple, Swap]),
-                 RF ("hcf", [Call "isFactor", E (If [Swap, E (If [Call "updateHcf"] [Call "updateCounter"])] [Call "updateCounter"])]),
+                 RF ("hcf", [Call "isFactor", E (If [Swap, E (If [Call "updateHcf"] [Call "updateCounter"])] [Swap, Pop, Call "updateCounter"])]),
                  RF ("isFactor", [Call "firstFactor", Call "secondFactor"]),
                  RF ("firstFactor", [E Dup, E (ExtractTuple 2), E (ExtractTuple 0), Swap, E (ExtractTuple 0), Swap, E Mod, Push (I 0), E Equ]),
                  RF ("secondFactor", [Swap, E Dup, E (ExtractTuple 2), E (ExtractTuple 0), Swap, E (ExtractTuple 1), Swap, E Mod, Push (I 0), E Equ]),
