@@ -481,7 +481,7 @@ emptystackpop = [Pop]
 -- Note that this behavior only occurs for Swap and IsType, while expressions such as Add will 
 -- generate default arguments. 
 notenoughargumentsswap :: Prog
-notenoughargumentsswap = [Push (I 10), Swap]
+notenoughargumentsswap = [Swap]
 -- Expected Output: Nothing
 notenoughargumentsistype :: Prog
 notenoughargumentsistype = [Push (I 10), E IsType]
