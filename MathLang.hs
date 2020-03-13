@@ -62,14 +62,6 @@ cmd :: Cmd -> Domain
 cmd (Pop)            []     _  = Nothing
 cmd (Pop)            (q:qs) _  = Just qs
 cmd (Push v)         q      _  = Just (v : q)
-cmd (ExtractTuple _) []     _  = Just []
-cmd (ExtractTuple n) (q:qs) _  = case q of
-                                    T v w -> case n of
-                                                0 -> Just (v : qs)
-                                                1 -> Just (w : qs)
-                                                2 -> Just (v : w : qs)
-                                                _ -> Nothing
-                                    _     -> Nothing
 cmd (E e)            q     fs = expr e q fs
 cmd (S s)            q     fs = stmt s q fs
 cmd (Call fn)        q     fs = case lookupFunc fn fs of 
