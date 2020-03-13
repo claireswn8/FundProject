@@ -193,6 +193,7 @@ expr Div q fs = case q of
                   (a : Counter : qs)   -> expr Div (a:(lookupC fs):qs) fs 
                   (I i : I j : qs)     -> case safeDiv (I i) (I j) of
                                              Just k -> Just ((k : qs), fs)
+                                             _      -> Nothing
                   (D i : D j : qs)     -> case safeDiv (D i) (D j) of
                                              Just k -> Just ((k : qs), fs)
                                              _        -> Nothing
