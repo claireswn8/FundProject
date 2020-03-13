@@ -67,14 +67,6 @@ cmd (Pop)     []     fs = Nothing
 cmd (Pop)     (q:qs) fs = Just (qs, fs)
 cmd (Push v)  q      fs = Just ((v : q), fs)
 cmd (E e)     q      fs = expr e q fs
-cmd (ExtractTuple _) []     fs  = Just ([], fs)
-cmd (ExtractTuple n) (q:qs) fs  = case q of
-                                    T v w -> case n of
-                                                0 -> Just ((v : qs), fs)
-                                                1 -> Just ((w : qs), fs)
-                                                2 -> Just ((v : w : qs), fs)
-                                                _ -> Nothing
-                                    _     -> Nothing
 cmd (S s)     q      fs = case stmt s q fs of
                               Just (q', fs') -> Just(q', fs)
                               _              -> Nothing
@@ -158,15 +150,14 @@ expr Add q fs = case q of
                   (I i : [])           -> Just ([I i], fs)
                   (D i : [])           -> Just ([D i], fs)
                   (T v w : [])         -> case (v, w) of
-                                         (I i, I j)           -> Just (([T (I i) (I j)]), fs)
-                                         _                    -> Nothing
-                  (I i : I j : qs)     -> Just (I (i + j) : qs)
+                                             (I i, I j)           -> Just (([T (I i) (I j)]), fs)
+                                             _                    -> Nothing
                   (C f : qs)           -> case (prog [f] qs fs) of 
-                                             Just q  -> expr Add q fs
-                                             Nothing -> Nothing  
+                                             Just (q, f) -> expr Add q f
+                                             Nothing     -> Nothing  
                   (a : C f : qs)       -> case (prog [f] qs fs) of 
-                                             Just q  -> expr Add (a : q) fs
-                                             Nothing -> Nothing  
+                                             Just (q, f) -> expr Add (a : q) f
+                                             Nothing     -> Nothing  
                   (T v w : T y z : qs) -> case (v, w, y, z) of
                                              (I v, I w, I y, I z) -> Just ((T (I (v + y)) (I (w + z)) : qs), fs)
                                              (D v, D w, D y, D z) -> Just ((T (D (v + y)) (D (w + z)) : qs), fs)
@@ -303,14 +294,14 @@ expr (Mod) q fs = case q of
 expr (BuildTuple) q fs = case q of
                            []             -> Nothing
                            [q1]           -> Nothing
-                           (q1 : q2 : qs) -> Just ((T q1 q2) : qs)
+                           (q1 : q2 : qs) -> Just (((T q1 q2) : qs), fs)
 -- Extracts the values from the tuple at the top of the stack
-expr (ExtractTuple _) []     _  = Just []
-expr (ExtractTuple n) (q:qs) _  = case q of
+expr (ExtractTuple _) []     fs = Just ([], fs)
+expr (ExtractTuple n) (q:qs) fs = case q of
                                     T v w -> case n of
-                                                0 -> Just (v : qs)
-                                                1 -> Just (w : qs)
-                                                2 -> Just (v : w : qs)
+                                                0 -> Just ((v : qs), fs)
+                                                1 -> Just ((w : qs), fs)
+                                                2 -> Just ((v : w : qs), fs)
                                                 _ -> Nothing
                                     _     -> Nothing
 
@@ -426,20 +417,17 @@ i2d_functions = [  ("preprocessing", [E Dup, Push (I 0)]),
 
 
 -- Example 2: Calculate the highest common factor of two numbers.
--- run using 'run hcf_example example2_functions' or for custom arguments 'prog hcf [T (I 14) (I 36)] hcf_functions'
+-- run using 'run hcf_example example2_functions'
 
 hcf_example :: Prog
-hcf_example = [Push (T (I 12) (I 16))] ++ hcf
+hcf_example = [Push (T (I 12) (I 16)), Call "preprocessing", S (While Less [Call "hcf"]), Call "cleanup"]
 
-hcf :: Prog
-hcf = [Call "preprocessing", S (While Less [Call "hcf"]), Call "cleanup"]
-
-hcf_functions :: [Func]
-hcf_functions = [("preprocessing", [Push (T (I 2) (I 1)), E BuildTuple, E Dup, E (ExtractTuple 2), E (ExtractTuple 0), Swap, maxTuple, Swap]),
-                  ("hcf", [Call "isFactor", E (If [Swap, E (If [Call "updateHcf"] [Call "updateCounter"])] [Call "updateCounter"])]),
-                  ("isFactor", [Call "firstFactor", Call "secondFactor"]),
-                  ("firstFactor", [E Dup, E (ExtractTuple 2), E (ExtractTuple 0), Swap, E (ExtractTuple 0), Swap, E Mod, Push (I 0), E Equ]),
-                  ("secondFactor", [Swap, E Dup, E (ExtractTuple 2), E (ExtractTuple 0), Swap, E (ExtractTuple 1), Swap, E Mod, Push (I 0), E Equ]),
-                  ("updateHcf", [E (ExtractTuple 2), E (ExtractTuple 0), E Dup, inc, E BuildTuple, E BuildTuple, E Dup, E (ExtractTuple 2), E (ExtractTuple 0), Swap, maxTuple, Swap]),
-                  ("updateCounter", [E (ExtractTuple 2), E (ExtractTuple 2), inc, E BuildTuple, E BuildTuple, E Dup, E (ExtractTuple 2), E (ExtractTuple 0), Swap, maxTuple, Swap]),
-                  ("cleanup", [E (ExtractTuple 0), E (ExtractTuple 1)])]
+hcf_functions :: [Ref]
+hcf_functions = [RF ("preprocessing", [Push (T (I 2) (I 1)), E BuildTuple, E Dup, E (ExtractTuple 2), E (ExtractTuple 0), Swap, maxTuple, Swap]),
+                 RF ("hcf", [Call "isFactor", E (If [Swap, E (If [Call "updateHcf"] [Call "updateCounter"])] [Call "updateCounter"])]),
+                 RF ("isFactor", [Call "firstFactor", Call "secondFactor"]),
+                 RF ("firstFactor", [E Dup, E (ExtractTuple 2), E (ExtractTuple 0), Swap, E (ExtractTuple 0), Swap, E Mod, Push (I 0), E Equ]),
+                 RF ("secondFactor", [Swap, E Dup, E (ExtractTuple 2), E (ExtractTuple 0), Swap, E (ExtractTuple 1), Swap, E Mod, Push (I 0), E Equ]),
+                 RF ("updateHcf", [E (ExtractTuple 2), E (ExtractTuple 0), E Dup, inc, E BuildTuple, E BuildTuple, E Dup, E (ExtractTuple 2), E (ExtractTuple 0), Swap, maxTuple, Swap]),
+                 RF ("updateCounter", [E (ExtractTuple 2), E (ExtractTuple 2), inc, E BuildTuple, E BuildTuple, E Dup, E (ExtractTuple 2), E (ExtractTuple 0), Swap, maxTuple, Swap]),
+                 RF ("cleanup", [E (ExtractTuple 0), E (ExtractTuple 1)])]
