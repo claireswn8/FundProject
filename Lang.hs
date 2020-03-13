@@ -19,9 +19,12 @@ data Expr = Add
           | Equ
           | If Prog Prog
           | Less
+          | Dup
+          | ExprList [Expr]
+          | IsType
    deriving (Eq, Show)
 
-data Stmt = While Expr Cmd
+data Stmt = While Expr Prog
           | Begin Prog
    deriving (Eq, Show)
 
@@ -31,6 +34,7 @@ data Cmd = Push Value
          | S Stmt
          | Call FuncName
          | CallStackFunc
+         | Swap
    deriving (Eq, Show)
 
 type Stack = [Value]
@@ -52,11 +56,17 @@ cmd (S s)           q      fs = stmt s q fs
 cmd (Call fn)       q      fs = case lookupFunc fn fs of 
                                     Just cmds -> prog cmds q fs
                                     _         -> Nothing
+-- Allows functions to be passed from the stack to other functions.
 cmd (CallStackFunc) (q:qs) fs = case q of 
                                     (F fn) -> case lookupFunc fn fs of
                                                    Just cmds -> prog cmds qs fs
                                                    _         -> Nothing
                                     _      -> Nothing
+-- Swaps the position of the first two elements of the stack, if they exist
+cmd (Swap)           q     fs = case q of
+                                    []             -> Nothing
+                                    [q1]           -> Nothing
+                                    (q1 : q2 : qs) -> Just (q2 : q1 : qs)
 
 
 safeDiv :: Int -> Int -> Maybe Int
@@ -156,10 +166,33 @@ expr (If t f) q fs = case q of
                                     Just q  -> expr (If t f) q fs
                                     Nothing -> Nothing
                   _              -> Nothing 
+-- Duplicates the top value on the stack.
+expr (Dup) q fs = case q of 
+                     []      -> Just []
+                     (v:qs)  -> Just (v : v : qs)
+-- Represents a list of expressions to evaluate against the stack, in order.
+expr (ExprList el) q fs = case el of 
+                              []       -> Just q
+                              (e : es) -> case expr e q fs of
+                                             Just q2 -> expr (ExprList es) q2 fs
+                                             _       -> Nothing
+-- Checks if the top two values on the stack are the same type. Does not consume the values.
+expr (IsType) q fs = case q of 
+                            []             -> Nothing
+                            [v1]           -> Nothing
+                            (v1 : v2 : vs) -> case (v1, v2) of
+                                                   (I i1, I i2)       -> Just (B True  : q)
+                                                   (B i1, B i2)       -> Just (B True  : q)
+                                                   (T i1 i2, T i3 i4) -> Just (B True  : q)
+                                                   (C i1, C i2)       -> Just (B True  : q)
+                                                   (F i1, F i2)       -> Just (B True  : q)
+                                                   _                  -> Just (B False : q)
+
+
 
 stmt :: Stmt -> Domain
 stmt (While e c) q fs = case (expr e q fs) of 
-                     (Just ((B True):qs)) -> case (cmd c qs fs) of
+                     (Just ((B True):qs)) -> case (prog c qs fs) of
                                              Just q -> stmt (While e c) q fs
                                              _      -> Nothing
                      (Just (_:qs))        -> Just (qs)
@@ -190,8 +223,8 @@ true = Push (B True)
 false :: Cmd
 false = Push (B True)
 
-greaterequ :: Cmd
-greaterequ = S (Begin [E Less, notl])
+greaterequ :: Expr
+greaterequ = ExprList [Less, notl]
 
 inc :: Cmd
 inc = S (Begin [Push (I 1), E Add])
@@ -199,11 +232,25 @@ inc = S (Begin [Push (I 1), E Add])
 dec :: Cmd
 dec = S (Begin [Push (I (-1)), E Add])
 
-notl :: Cmd
-notl = E (If [Push (B False)] [Push (B True)])
+notl :: Expr
+notl = If [Push (B False)] [Push (B True)]
 
 andl :: Cmd
 andl = E (If [E (If [true] [false])] [E (If [false] [false])]) 
 
 orl :: Cmd
-orl = E (If [E (If [true] [true])] [E (If [true] [false])]) 
+orl = E (If [E (If [true] [true])] [E (If [true] [false])])
+
+minus :: Cmd
+minus = S (Begin [Push (I (-1)), E Mul, E Add])
+
+absval :: Cmd
+absval = S (Begin [E Dup, Push (I 0), E Less, E (If [] [Push (I (-1)), E Mul])])
+
+-- Library-level or possibly syntactic sugar?
+
+factorial :: Cmd
+factorial = S (Begin [Push (B False), Swap, E Dup, Push (I 2), 
+            S (While Less [E Dup, Push (I 1), minus, absval, E Dup, Push (I 2)]), 
+            S (While IsType [E Mul]), Swap, Pop ])
+

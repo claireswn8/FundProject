@@ -88,7 +88,6 @@ cmd (Swap)           q     fs = case q of
                                     [q1]           -> Nothing
                                     (q1 : q2 : qs) -> Just (q2 : q1 : qs)
 
-
 safeDiv :: Value -> Value -> Maybe Value
 safeDiv x y = case y of
                   (I 0) -> Nothing
