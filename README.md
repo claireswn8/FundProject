@@ -26,14 +26,6 @@ This program deconstructs an integer into its digits. The digits are then pushed
 -- Prebuilt example:
 run int2digit_example i2d_functions
 >>> Expected Output: Just [I 2,I 3,I 5,I 2,I 3,I 4]
-
--- Custom argument:
-prog int2digit_example [I 2837] i2d_functions
->>> Expected Output: Just [I 2,I 8,I 3,I 7]
-
--- Full program:
-prog [Call "preprocessing", S (While Less [Call "deconstruct"]), Push (F "cleanup"), CallStackFunc] [I 2837] [  ("preprocessing", [E Dup, Push (I 0)]), ("deconstruct", [E Dup, Push (I 10), E Mod, Swap, Push (I 10), Swap, E Div, E Dup, Push (I 0)]), ("cleanup", [Pop])]
->>> Expected Output: Just [I 2,I 8,I 3,I 7]
 ```
 
 #### Example 2: Calculate Highest Common Factor
@@ -42,15 +34,12 @@ This program calculates the highest common factor of two integers within a tuple
 -- Prebuilt example:
 run hcf_example hcf_functions
 >>> Expected Output: Just [I 4]
-
--- Full program:
-prog [Push (T (I 12) (I 16)), Call "preprocessing", S (While Less [Call "hcf"]), Call "cleanup"] [RF ("preprocessing", [Push (T (I 2) (I 1)), E BuildTuple, E Dup, E (ExtractTuple 2), E (ExtractTuple 0), Swap, maxTuple, Swap]), RF ("hcf", [Call "isFactor", E (If [Swap, E (If [Call "updateHcf"] [Call "updateCounter"])] [Swap, Pop, Call "updateCounter"])]), RF ("isFactor", [Call "firstFactor", Call "secondFactor"]), RF ("firstFactor", [E Dup, E (ExtractTuple 2), E (ExtractTuple 0), Swap, E (ExtractTuple 0), Swap, E Mod, Push (I 0), E Equ]), RF ("secondFactor", [Swap, E Dup, E (ExtractTuple 2), E (ExtractTuple 0), Swap, E (ExtractTuple 1), Swap, E Mod, Push (I 0), E Equ]), RF ("updateHcf", [E (ExtractTuple 2), E (ExtractTuple 0), E Dup, inc, E BuildTuple, E BuildTuple, E Dup, E (ExtractTuple 2), E (ExtractTuple 0), Swap, maxTuple, Swap]), RF ("updateCounter", [E (ExtractTuple 2), E (ExtractTuple 2), inc, E BuildTuple, E BuildTuple, E Dup, E (ExtractTuple 2), E (ExtractTuple 0), Swap, maxTuple, Swap]), RF ("cleanup", [E (ExtractTuple 0), E (ExtractTuple 1)])]
 ```
 
 #### Further Examples
 Further examples of programs written in our language can be found in our "Mathlude". This standard library contains functions that allow users of our language to perform mathmatical calculations. Users can call functions such as `factorial` and `percent`. These functions are automatically included in the list of accessible functions when programs are run using the `run` keyword.
 
-### Running Bad Examples
+### Bad Program Examples and their Outputs
 To run bad examples, use the following format in GHCi:
 
 `run [S (Begin ExampleName)] []`
