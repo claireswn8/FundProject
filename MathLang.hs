@@ -101,7 +101,6 @@ cmd Set             (q:qs) fs = case q of
                                     _             -> Nothing
 cmd Set              []    fs = Nothing
 
-
 safeDiv :: Value -> Value -> Maybe Value
 safeDiv x y = case y of
                   (I 0) -> Nothing
@@ -359,6 +358,7 @@ run [] fs = case prog [] [] (fs ++ mathlude) of
 run c fs = case prog c [] (fs++mathlude) of
                Just(q, fs)       -> Just q
                _                 -> Nothing
+
 
 
 
