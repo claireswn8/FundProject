@@ -32,6 +32,8 @@ data Expr = Add
           | ExprList [Expr]
           | IsType
           | Mod
+          | BuildTuple
+          | ExtractTuple Int
    deriving (Eq, Show)
 
 data Stmt = While Expr Prog
@@ -40,7 +42,6 @@ data Stmt = While Expr Prog
 
 data Cmd = Push Value
          | Pop
-         | ExtractTuple Int
          | E Expr
          | S Stmt
          | Call FuncName
@@ -66,14 +67,6 @@ cmd (Pop)     []     fs = Nothing
 cmd (Pop)     (q:qs) fs = Just (qs, fs)
 cmd (Push v)  q      fs = Just ((v : q), fs)
 cmd (E e)     q      fs = expr e q fs
-cmd (ExtractTuple _) []     fs  = Just ([], fs)
-cmd (ExtractTuple n) (q:qs) fs  = case q of
-                                    T v w -> case n of
-                                                0 -> Just ((v : qs), fs)
-                                                1 -> Just ((w : qs), fs)
-                                                2 -> Just ((v : w : qs), fs)
-                                                _ -> Nothing
-                                    _     -> Nothing
 cmd (S s)     q      fs = case stmt s q fs of
                               Just (q', fs') -> Just(q', fs)
                               _              -> Nothing
@@ -91,7 +84,7 @@ cmd (CallStackFunc) (q:qs) fs = case q of
 -- Swaps the position of the first two elements of the stack, if they exist
 cmd (Swap)           q     fs = case q of
                                     []             -> Nothing
-                                    [q1]           -> Nothing
+                                    [q1]           -> Just ([q1], fs)
                                     (q1 : q2 : qs) -> Just ((q2 : q1 : qs), fs)
 cmd Set             (q:qs) fs = case q of
                                     I i           -> case fs of
@@ -99,7 +92,6 @@ cmd Set             (q:qs) fs = case q of
                                                      _             -> Just (qs, (findSetC i fs))
                                     _             -> Nothing
 cmd Set              []    fs = Nothing
-
 
 safeDiv :: Value -> Value -> Maybe Value
 safeDiv x y = case y of
@@ -158,14 +150,14 @@ expr Add q fs = case q of
                   (I i : [])           -> Just ([I i], fs)
                   (D i : [])           -> Just ([D i], fs)
                   (T v w : [])         -> case (v, w) of
-                                         (I i, I j)           -> Just (([T (I i) (I j)]), fs)
-                                         _                    -> Nothing
+                                             (I i, I j)           -> Just (([T (I i) (I j)]), fs)
+                                             _                    -> Nothing
                   (C f : qs)           -> case (prog [f] qs fs) of 
-                                             Just (q, fs)  -> expr Add q fs
-                                             Nothing -> Nothing  
+                                             Just (q, f) -> expr Add q f
+                                             Nothing     -> Nothing  
                   (a : C f : qs)       -> case (prog [f] qs fs) of 
-                                             Just (q, fs)  -> expr Add (a : q) fs
-                                             Nothing -> Nothing  
+                                             Just (q, f) -> expr Add (a : q) f
+                                             Nothing     -> Nothing  
                   (T v w : T y z : qs) -> case (v, w, y, z) of
                                              (I v, I w, I y, I z) -> Just ((T (I (v + y)) (I (w + z)) : qs), fs)
                                              (D v, D w, D y, D z) -> Just ((T (D (v + y)) (D (w + z)) : qs), fs)
@@ -178,11 +170,9 @@ expr Mul q fs = case q of
                   (a : Counter : qs)   -> expr Mul (a:(lookupC fs):qs) fs 
                   (I i : I j : qs)     -> Just ((I (i * j) : qs), fs)
                   (D i : D j : qs)     -> Just ((D (i * j) : qs), fs)
-                  (I i : [])           -> Just ([I 0], fs)
+                  (I i : [])           -> Just ([I i], fs)
                   (D i : [])           -> Just ([D i], fs)
-                  (T v w : [])         -> case (v, w) of
-                                         (I i, I j)            -> Just ([I 0], fs)
-
+                  (T v w : [])         -> Just ([T v w], fs)
                   (C f : qs)           -> case (prog [f] qs fs) of 
                                              Just (q, fs)  -> expr Mul q fs
                                              Nothing -> Nothing 
@@ -205,7 +195,6 @@ expr Div q fs = case q of
                                              Just k -> Just ((k : qs), fs)
                   (D i : D j : qs)     -> case safeDiv (D i) (D j) of
                                              Just k -> Just ((k : qs), fs)
-
                                              _        -> Nothing
                   (C f : qs)           -> case (prog [f] qs fs) of 
                                              Just (q, fs)  -> expr Div q fs
@@ -227,23 +216,23 @@ expr Equ q fs = case q of
                   (D i : [])           -> Just ([B (i == 0)], fs)
                   (B b : [])           -> Just ([B (b == False)], fs) 
                   (T a b : [])         -> case (a, b) of
-                                          (I a, I b)     -> Just ([B (a == 0 && b == 0)], fs)
-                                          (D a, D b)     -> Just ([B (a == 0 && b == 0)], fs)
-                                          (B a, B b)     -> Just ([B (a == False && b == False)], fs)
-                                          (I a, B b)     -> Just ([B (a == 0 && b == False)], fs)
-                                          (B a, I b)     -> Just ([B (a == False && b == 0 )], fs)
-                                          (D a, B b)     -> Just ([B (a == 0 && b == False)], fs)
-                                          (B a, D b)     -> Just ([B (a == False && b == 0)], fs)
-                                          (I a, D b)     -> Just ([B (a == 0 && b == 0)], fs)
-                                          (D a, I b)     -> Just ([B (a == 0 && b == 0)], fs)
-                                          (T v w, T y z) -> Just ([B (tupleEqu (T v w) (T y z))], fs)
-                                          _              -> Nothing
+                                             (I a, I b)     -> Just ([B (a == 0 && b == 0)], fs)
+                                             (D a, D b)     -> Just ([B (a == 0 && b == 0)], fs)
+                                             (B a, B b)     -> Just ([B (a == False && b == False)], fs)
+                                             (I a, B b)     -> Just ([B (a == 0 && b == False)], fs)
+                                             (B a, I b)     -> Just ([B (a == False && b == 0 )], fs)
+                                             (D a, B b)     -> Just ([B (a == 0 && b == False)], fs)
+                                             (B a, D b)     -> Just ([B (a == False && b == 0)], fs)
+                                             (I a, D b)     -> Just ([B (a == 0 && b == 0)], fs)
+                                             (D a, I b)     -> Just ([B (a == 0 && b == 0)], fs)
+                                             (T v w, T y z) -> Just ([B (tupleEqu (T v w) (T y z))], fs)
+                                             _              -> Nothing
                   (C f : qs)           -> case (prog [f] qs fs) of 
-                                          Just (q, fs)  -> expr Equ q fs
-                                          Nothing -> Nothing
+                                             Just (q, fs)  -> expr Equ q fs
+                                             Nothing -> Nothing
                   (a : C f : qs)       -> case (prog [f] qs fs) of 
-                                          Just (q, fs)  -> expr Equ (a : q) fs
-                                          Nothing -> Nothing  
+                                             Just (q, fs)  -> expr Equ (a : q) fs
+                                             Nothing -> Nothing  
                   (T v w : T y z : qs) -> Just ((B (tupleEqu (T v w) (T y z)) : qs), fs)
                   _                    -> Nothing
 expr Less q fs = case q of 
@@ -255,13 +244,12 @@ expr Less q fs = case q of
                      (D i : [])           -> Just ([B (i < 0)], fs)
                      (T v w : [])         -> Just ([B (tupleLess (T v w) (T (I 0) (I 0)))], fs)
                      (C f : qs)           -> case (prog [f] qs fs) of 
-                                             Just (q, fs)  -> expr Less q fs
-                                             Nothing -> Nothing
+                                                Just (q, fs)  -> expr Less q fs
+                                                Nothing -> Nothing
                      (a : C f : qs)       -> case (prog [f] qs fs) of 
-                                             Just (q, fs)  -> expr Less (a : q) fs
-                                             Nothing -> Nothing  
+                                                Just (q, fs)  -> expr Less (a : q) fs
+                                                Nothing -> Nothing  
                      (T v w : T y z : qs) -> Just ((B (tupleLess (T v w) (T y z)) : qs), fs) 
-
                      _                    -> Nothing                
 expr (If t f) q fs = case q of
                         (B True  : qs) -> prog t qs fs
@@ -284,32 +272,46 @@ expr (ExprList el) q fs = case el of
                                              Just (q2, fs) -> expr (ExprList es) q2 fs
                                              _       -> Nothing
 -- Checks if the top two values on the stack are the same type. Does not consume the values.
-expr (IsType) q fs = case q of 
-                            []             -> Nothing
-                            [v1]           -> Nothing
-                            (v1 : v2 : vs) -> case (v1, v2) of
-                                                   (I i1, I i2)       -> Just ((B True  : q), fs)
-                                                   (D i1, D i2)       -> Just ((B True  : q), fs)
-                                                   (B i1, B i2)       -> Just ((B True  : q), fs)
-                                                   (T i1 i2, T i3 i4) -> Just ((B True  : q), fs)
-                                                   (C i1, C i2)       -> Just ((B True  : q), fs)
-                                                   (F i1, F i2)       -> Just ((B True  : q), fs)
-                                                   _                  -> Just ((B False : q), fs)
+expr (IsType) q fs = case q of
+                        []             -> Nothing
+                        [v1]           -> Nothing
+                        (v1 : v2 : vs) -> case (v1, v2) of
+                                             (I i1, I i2)       -> Just ((B True  : q), fs)
+                                             (D i1, D i2)       -> Just ((B True  : q), fs)
+                                             (B i1, B i2)       -> Just ((B True  : q), fs)
+                                             (T i1 i2, T i3 i4) -> Just ((B True  : q), fs)
+                                             (C i1, C i2)       -> Just ((B True  : q), fs)
+                                             (F i1, F i2)       -> Just ((B True  : q), fs)
+                                             _                  -> Just ((B False : q), fs)
 expr (Mod) q fs = case q of 
-                        (I i : [])       -> Just ([I (1 `mod` i)], fs)
-                        (I i : I j : qs) -> Just ((I (j `mod` i) : qs), fs)
-                        _                -> Nothing
+                     (I i : [])       -> Just ([I (1 `mod` i)], fs)
+                     (I i : I j : qs) -> Just ((I (j `mod` i) : qs), fs)
+                     _                -> Nothing
+-- Builds a tuple out of the top two elements of the stack, if they exist
+expr (BuildTuple) q fs = case q of
+                           []             -> Nothing
+                           [q1]           -> Nothing
+                           (q1 : q2 : qs) -> Just (((T q1 q2) : qs), fs)
+-- Extracts the values from the tuple at the top of the stack
+expr (ExtractTuple _) []     fs = Just ([], fs)
+expr (ExtractTuple n) (q:qs) fs = case q of
+                                    T v w -> case n of
+                                                0 -> Just ((v : qs), fs)
+                                                1 -> Just ((w : qs), fs)
+                                                2 -> Just ((v : w : qs), fs)
+                                                _ -> Nothing
+                                    _     -> Nothing
 
 stmt :: Stmt -> Domain
 stmt (While e c)    q fs = case (expr e q fs) of 
-                           (Just (((B True):qs), fs)) -> case (prog c qs fs) of
-                                                      Just (q, fs) -> stmt (While e c) q fs
-                                                      _      -> Nothing
-                           (Just ((_:qs), fs))        -> Just (qs, fs)
-                           _                    -> Nothing
+                              (Just (((B True):qs), fs)) -> case (prog c qs fs) of
+                                                               Just (q, fs) -> stmt (While e c) q fs
+                                                               _      -> Nothing
+                              (Just ((_:qs), fs))        -> Just (qs, fs)
+                              _                    -> Nothing
 stmt (Begin (c:cs)) q fs = case (cmd c q fs) of
-                           Just (q, fs') -> stmt (Begin cs) q fs'
-                           _      -> Nothing
+                              Just (q, fs') -> stmt (Begin cs) q fs'
+                              _      -> Nothing
 stmt (Begin [])     q fs  = Just (q, fs)
  
 -- Takes the name of a function and a list of functions, and returns the list of commands associated
@@ -317,13 +319,13 @@ stmt (Begin [])     q fs  = Just (q, fs)
 lookupFunc :: FuncName -> [Ref] -> Maybe [Cmd]
 lookupFunc fn []             = Nothing
 lookupFunc fn (RF (n, cmds):fs) = if n == fn then Just cmds
-                               else lookupFunc fn fs
+                                  else lookupFunc fn fs
 
 findSetC :: Int -> [Ref] -> [Ref]
 findSetC i []       = [RC i]
 findSetC i (r:rs)   = case r of
-                     RC j  -> (RC i) : rs
-                     _     -> r : (findSetC i rs)
+                        RC j  -> (RC i) : rs
+                        _     -> r : (findSetC i rs)
 
 lookupC :: [Ref] -> Value
 lookupC []         = I 0
@@ -339,11 +341,11 @@ prog  (c:cs) q fs = case cmd c q fs of
 
 run :: Prog -> [Ref] -> Maybe Stack
 run [] fs = case prog [] [] (fs ++ mathlude) of
-         Just(q, fs)       -> Just q
-         _                 -> Nothing
+               Just(q, fs)       -> Just q
+               _                 -> Nothing
 run c fs = case prog c [] (fs++mathlude) of
-         Just(q, fs)       -> Just q
-         _                 -> Nothing
+               Just(q, fs)       -> Just q
+               _                 -> Nothing
 
 
 -- Syntactic Sugar --
@@ -385,6 +387,12 @@ summation :: Int -> Int -> [Cmd] -> Cmd
 summation l h c = S(Begin [Push (I l), Set, Push (I (h+1)), Push (I l), S (While Less 
                    [Push Counter, S (Begin c), Push (I (h+1)), Push Counter, inc, Set, Push Counter]), 
                    for (h-l) [E Add] ])
+                   
+maxTuple :: Cmd
+maxTuple = S (Begin [E Dup, E (ExtractTuple 2), E greaterequ, E (If [E Dup, E (ExtractTuple 0)] [E Dup, E (ExtractTuple 1)]), Swap, Pop])
+
+isBoolean :: Cmd
+isBoolean = S (Begin [E Dup, true, E Equ, E (If [true] [E Dup, false, E Equ, E (If [true] [false])])])
 
 -- Good Examples --
 
@@ -404,6 +412,24 @@ i2d_functions = [  ("preprocessing", [E Dup, Push (I 0)]),
                ("cleanup", [Pop])
             ]
 
+
+-- Example 2: Calculate the highest common factor of two numbers.
+-- run using 'run hcf_example hcf_functions'
+
+hcf_example :: Prog
+hcf_example = [Push (T (I 12) (I 16)), Call "preprocessing", S (While Less [Call "hcf"]), Call "cleanup"]
+
+hcf_functions :: [Ref]
+hcf_functions = [RF ("preprocessing", [Push (T (I 2) (I 1)), E BuildTuple, E Dup, E (ExtractTuple 2), E (ExtractTuple 0), Swap, maxTuple, Swap]),
+                 RF ("hcf", [Call "isFactor", E (If [Swap, E (If [Call "updateHcf"] [Call "updateCounter"])] [Swap, Pop, Call "updateCounter"])]),
+                 RF ("isFactor", [Call "firstFactor", Call "secondFactor"]),
+                 RF ("firstFactor", [E Dup, E (ExtractTuple 2), E (ExtractTuple 0), Swap, E (ExtractTuple 0), Swap, E Mod, Push (I 0), E Equ]),
+                 RF ("secondFactor", [Swap, E Dup, E (ExtractTuple 2), E (ExtractTuple 0), Swap, E (ExtractTuple 1), Swap, E Mod, Push (I 0), E Equ]),
+                 RF ("updateHcf", [E (ExtractTuple 2), E (ExtractTuple 0), E Dup, inc, E BuildTuple, E BuildTuple, E Dup, E (ExtractTuple 2), E (ExtractTuple 0), Swap, maxTuple, Swap]),
+                 RF ("updateCounter", [E (ExtractTuple 2), E (ExtractTuple 2), inc, E BuildTuple, E BuildTuple, E Dup, E (ExtractTuple 2), E (ExtractTuple 0), Swap, maxTuple, Swap]),
+                 RF ("cleanup", [E (ExtractTuple 0), E (ExtractTuple 1)])]
+
+                 
 -- Bad Examples --
 
 -- This program is an example of a mismatched types error in MathLang.
@@ -459,7 +485,6 @@ notenoughargumentsswap = [Push (I 10), Swap]
 -- Expected Output: Nothing
 notenoughargumentsistype :: Prog
 notenoughargumentsistype = [Push (I 10), E IsType]
-
 
 
 

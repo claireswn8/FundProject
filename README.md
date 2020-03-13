@@ -75,42 +75,25 @@ cmd (E Mul) [D 2,D 3,D 8]
 >>> Expected Output: Just [D 6.0,D 8.0]
 ```
 
-```haskell
-expr Mul [T (I 2) (I 3),T (I 4) (I 5),T (I 20) (I 40)] []
-cmd (E Mul) [T (I 2) (I 3),T (I 4) (I 5),T (I 20) (I 40)] []
->>> Expected Output: Just [T (I 8) (I 15),T (I 20) (I 40)]
+-- Custom argument:
+prog int2digit_example [I 2837] i2d_functions
+>>> Expected Output: Just [I 2,I 8,I 3,I 7]
+
+-- Full program:
+prog [Call "preprocessing", S (While Less [Call "deconstruct"]), Push (F "cleanup"), CallStackFunc] [I 2837] [  ("preprocessing", [E Dup, Push (I 0)]), ("deconstruct", [E Dup, Push (I 10), E Mod, Swap, Push (I 10), Swap, E Div, E Dup, Push (I 0)]), ("cleanup", [Pop])]
+>>> Expected Output: Just [I 2,I 8,I 3,I 7]
 ```
 
-```haskell
-expr Div [I 10,I 5,I 8] []
-cmd (E Div) [I 10,I 5,I 8] []
->>> Expected Output: Just [I 2,I 8]
-```
+#### Example 2: TBA
+
+#### Further Examples
+Further examples of programs written in our language can be found in our "Mathlude". This standard library contains functions that allow users of our language to perform mathmatical calculations. Users can call functions such as `factorial`, `summation`, and `percent`. These functions are automatically included in the list of accessible functions when programs are run using the `run` keyword.
 
 ```haskell
-expr Equ [I 2,I 2,I 3] []
->>> Expected Output: Just [B True,I 3]
+run [Push (I 6), Call "factorial"] []
+>>> Expected Output: Just [I 720]
 ```
 
-```haskell
-expr Equ [B True,B False,I 3] []
->>> Expected Output: Just [B False,I 3]
-```
-
-```haskell
-expr (If [Push (I 5)] [Push (B True)]) [B True] []
->>> Expected Output: Just [I 5]
-```
-
-```haskell
-stmt (While Equ (S (Begin [Push (I 5),Push (I 2),E Add]))) [B True,B True] []
->>> Expected Output: Just [I 7]
-```
-
-```haskell
-prog [Push (I 5),Push (I 2),E Add] []
->>> Expected Output: Just [I 7]
-```
 
 #### ExtractTuple
 ```haskell
